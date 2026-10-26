@@ -1,0 +1,37 @@
+{
+  "sources": [
+    {
+      "name": "replay-api",
+      "type": "CustomEndpoint",
+      "properties": {}
+    }
+  ],
+  "destinations": [
+    {
+      "name": "eh-football-rt",
+      "type": "Eventhouse",
+      "properties": {
+        "dataIngestionMode": "ProcessedIngestion",
+        "workspaceId": "{{workspace_id}}",
+        "itemId": "{{kql_database_id}}",
+        "databaseName": "eh_football_rt",
+        "tableName": "ReplayRaw",
+        "inputSerialization": {
+          "type": "Json",
+          "properties": { "encoding": "UTF8" }
+        }
+      },
+      "inputNodes": [{ "name": "es_football_replay-stream" }]
+    }
+  ],
+  "streams": [
+    {
+      "name": "es_football_replay-stream",
+      "type": "DefaultStream",
+      "properties": {},
+      "inputNodes": [{ "name": "replay-api" }]
+    }
+  ],
+  "operators": [],
+  "compatibilityLevel": "1.0"
+}

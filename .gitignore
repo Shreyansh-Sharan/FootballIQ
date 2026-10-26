@@ -1,0 +1,33 @@
+# secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# data (bronze/silver are reproducible via `footballiq-ingest`)
+data/*
+!data/README.md
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+dist/
+build/
+
+# node
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# os / editors
+.DS_Store
+.vscode/
+.idea/
+
+# backend runtime caches (Fabric query cache, TTS audio, commentary rewrites)
+backend/data/

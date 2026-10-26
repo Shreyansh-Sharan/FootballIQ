@@ -1,0 +1,48 @@
+{
+  "$schema": "https://dataexplorer.azure.com/static/d/schema/52/dashboard.json",
+  "schema_version": "52",
+  "title": "Football IQ · live replay",
+  "autoRefresh": { "enabled": true, "defaultInterval": "30s", "minInterval": "30s" },
+  "baseQueries": [],
+  "parameters": [],
+  "dataSources": [
+    {
+      "id": "ds-football-rt",
+      "name": "eh_football_rt",
+      "scopeId": "kusto-trident",
+      "kind": "kusto-trident",
+      "clusterUri": "{{cluster_uri}}",
+      "database": "{{kql_database_id}}",
+      "workspace": "{{workspace_id}}"
+    }
+  ],
+  "pages": [{ "id": "page-live", "name": "Live replay" }],
+  "queries": [
+    { "id": "q-sessions", "dataSource": { "kind": "inline", "dataSourceId": "ds-football-rt" }, "usedVariables": [],
+      "text": "fn_LiveSessions(15m)\n| project session_id, match_id, clock_label, home_team_id, home_score, away_score, away_team_id, last_sent" },
+    { "id": "q-lag", "dataSource": { "kind": "inline", "dataSourceId": "ds-football-rt" }, "usedVariables": [],
+      "text": "fn_PipelineLag(1h)\n| project ingested_at_utc, p50, p95, p99" },
+    { "id": "q-events", "dataSource": { "kind": "inline", "dataSourceId": "ds-football-rt" }, "usedVariables": [],
+      "text": "fn_KeyEventFeed(1h)\n| project ingested_at_utc, match_id, clock_label, team_id, player_name, event_type, subtype, outcome, provider_xg\n| take 50" },
+    { "id": "q-shape", "dataSource": { "kind": "inline", "dataSourceId": "ds-football-rt" }, "usedVariables": [],
+      "text": "let s = toscalar(fn_LiveSessions(1h) | top 1 by last_sent desc | project session_id);\nfn_TeamShape(s)\n| extend minute = replay_t_ms / 60000.0\n| project minute, home_width_m, away_width_m, home_depth_m, away_depth_m" },
+    { "id": "q-throughput", "dataSource": { "kind": "inline", "dataSourceId": "ds-football-rt" }, "usedVariables": [],
+      "text": "ReplayRaw\n| where ingestion_time() > ago(1h)\n| summarize messages = count() by stream, minute = bin(ingestion_time(), 1m)" },
+    { "id": "q-observed", "dataSource": { "kind": "inline", "dataSourceId": "ds-football-rt" }, "usedVariables": [],
+      "text": "TrackingSecond\n| where ingested_at_utc > ago(1h)\n| summarize observed_pct = round(avg(players_observed_pct), 1)" }
+  ],
+  "tiles": [
+    { "id": "t-sessions", "title": "Live replay sessions", "visualType": "table", "pageId": "page-live",
+      "layout": { "x": 0, "y": 0, "width": 16, "height": 6 }, "queryRef": { "kind": "query", "queryId": "q-sessions" }, "visualOptions": {} },
+    { "id": "t-observed", "title": "Player positions observed by cameras (%)", "visualType": "card", "pageId": "page-live",
+      "layout": { "x": 16, "y": 0, "width": 8, "height": 6 }, "queryRef": { "kind": "query", "queryId": "q-observed" }, "visualOptions": {} },
+    { "id": "t-shape", "title": "Team width / depth (m) - latest session, by match minute", "visualType": "line", "pageId": "page-live",
+      "layout": { "x": 0, "y": 6, "width": 12, "height": 8 }, "queryRef": { "kind": "query", "queryId": "q-shape" }, "visualOptions": {} },
+    { "id": "t-lag", "title": "Pipeline lag API -> Eventstream -> Eventhouse (ms)", "visualType": "timechart", "pageId": "page-live",
+      "layout": { "x": 12, "y": 6, "width": 12, "height": 8 }, "queryRef": { "kind": "query", "queryId": "q-lag" }, "visualOptions": {} },
+    { "id": "t-events", "title": "Key events as the replay reaches them", "visualType": "table", "pageId": "page-live",
+      "layout": { "x": 0, "y": 14, "width": 16, "height": 8 }, "queryRef": { "kind": "query", "queryId": "q-events" }, "visualOptions": {} },
+    { "id": "t-throughput", "title": "Messages per minute by stream", "visualType": "column", "pageId": "page-live",
+      "layout": { "x": 16, "y": 14, "width": 8, "height": 8 }, "queryRef": { "kind": "query", "queryId": "q-throughput" }, "visualOptions": {} }
+  ]
+}

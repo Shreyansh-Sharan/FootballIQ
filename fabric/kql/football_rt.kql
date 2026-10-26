@@ -1,0 +1,151 @@
+// Football IQ real-time schema for Eventhouse `eh_football_rt` (KQL database of the same name).
+// Applied by `python fabric/scripts/fabric_bootstrap.py realtime` (each command separated by a
+// line containing only `//--`). All commands are idempotent (.create-merge / .create-or-alter).
+//
+// Flow: Replay API --(Eventstream custom endpoint)--> es_football_replay --> ReplayRaw
+//       ReplayRaw --update policies--> TrackingSecond | MatchEvents | MatchState | ReplayTelemetry | MatchPredictions
+// Rule (doc section 2): this is the analytics/telemetry path. The pitch never reads from here.
+
+.create-merge table ReplayRaw (
+    stream: string, match_id: string, session_id: string, generation_id: int,
+    replay_t_ms: long, sent_at_utc: datetime, payload: dynamic)
+//--
+.create-or-alter table ReplayRaw ingestion json mapping "ReplayRawMapping"
+'[{"column":"stream","path":"$.stream","datatype":"string"},{"column":"match_id","path":"$.match_id","datatype":"string"},{"column":"session_id","path":"$.session_id","datatype":"string"},{"column":"generation_id","path":"$.generation_id","datatype":"int"},{"column":"replay_t_ms","path":"$.replay_t_ms","datatype":"long"},{"column":"sent_at_utc","path":"$.sent_at_utc","datatype":"datetime"},{"column":"payload","path":"$.payload","datatype":"dynamic"}]'
+//--
+.alter-merge table ReplayRaw policy retention softdelete = 30d
+//--
+// streaming ingestion: end-to-end lag p50 ~2.3 s / p95 ~4.5 s (measured), within the doc's 1-5 s budget
+.alter table ReplayRaw policy streamingingestion enable
+//--
+.create-merge table TrackingSecond (
+    match_id: string, session_id: string, generation_id: int, replay_t_ms: long, frame_num: long,
+    ball_x_m: real, ball_y_m: real, ball_observed: bool,
+    home_centroid_x_m: real, home_centroid_y_m: real, away_centroid_x_m: real, away_centroid_y_m: real,
+    home_width_m: real, home_depth_m: real, away_width_m: real, away_depth_m: real,
+    players_observed_pct: real, players: dynamic, sent_at_utc: datetime, ingested_at_utc: datetime)
+//--
+.create-merge table MatchEvents (
+    match_id: string, session_id: string, generation_id: int, replay_t_ms: long, event_id: string,
+    clock_label: string, period: int, team_id: string, player_name: string, event_type: string,
+    subtype: string, outcome: string, x_m: real, y_m: real, provider_xg: real, is_goal: bool,
+    is_key: bool, sent_at_utc: datetime, ingested_at_utc: datetime)
+//--
+.create-merge table MatchState (
+    match_id: string, session_id: string, generation_id: int, replay_t_ms: long, clock_label: string,
+    period: int, home_team_id: string, away_team_id: string, home_score: int, away_score: int,
+    stats: dynamic, sent_at_utc: datetime, ingested_at_utc: datetime)
+//--
+.create-merge table ReplayTelemetry (
+    match_id: string, session_id: string, generation_id: int, replay_t_ms: long, telemetry_kind: string,
+    speed: real, paused: bool, frames_sent: int, events_sent: int, server_tick_ms: real,
+    sent_at_utc: datetime, ingested_at_utc: datetime, pipeline_lag_ms: real)
+//--
+.create-merge table MatchPredictions (
+    match_id: string, session_id: string, generation_id: int, replay_t_ms: long, feature_cutoff_ms: long,
+    model_version: string, phase: string, team_id: string, target_name: string, probability: real,
+    prob_lo: real, prob_hi: real, predicted_value: real, sent_at_utc: datetime, ingested_at_utc: datetime)
+//--
+.create-or-alter function with (folder = "update", docstring = "ReplayRaw -> TrackingSecond") Update_TrackingSecond() {
+    ReplayRaw
+    | where stream == "match.tracking.1s"
+    | project match_id, session_id, generation_id, replay_t_ms,
+        frame_num = tolong(payload.frame_num),
+        ball_x_m = toreal(payload.ball[0]), ball_y_m = toreal(payload.ball[1]), ball_observed = tobool(payload.ball[3]),
+        home_centroid_x_m = toreal(payload.home.cx), home_centroid_y_m = toreal(payload.home.cy),
+        away_centroid_x_m = toreal(payload.away.cx), away_centroid_y_m = toreal(payload.away.cy),
+        home_width_m = toreal(payload.home.width), home_depth_m = toreal(payload.home.depth),
+        away_width_m = toreal(payload.away.width), away_depth_m = toreal(payload.away.depth),
+        players_observed_pct = toreal(payload.players_observed_pct), players = payload.players,
+        sent_at_utc, ingested_at_utc = ingestion_time()
+}
+//--
+.create-or-alter function with (folder = "update", docstring = "ReplayRaw -> MatchEvents") Update_MatchEvents() {
+    ReplayRaw
+    | where stream == "match.events"
+    | project match_id, session_id, generation_id, replay_t_ms,
+        event_id = tostring(payload.event_id), clock_label = tostring(payload.clock_label), period = toint(payload.period),
+        team_id = tostring(payload.team_id), player_name = tostring(payload.player_name),
+        event_type = tostring(payload.type), subtype = tostring(payload.subtype), outcome = tostring(payload.outcome),
+        x_m = toreal(payload.x_m), y_m = toreal(payload.y_m), provider_xg = toreal(payload.provider_xg),
+        is_goal = tobool(payload.is_goal), is_key = tobool(payload.is_key), sent_at_utc, ingested_at_utc = ingestion_time()
+}
+//--
+.create-or-alter function with (folder = "update", docstring = "ReplayRaw -> MatchState") Update_MatchState() {
+    ReplayRaw
+    | where stream == "match.state"
+    | project match_id, session_id, generation_id, replay_t_ms,
+        clock_label = tostring(payload.clock_label), period = toint(payload.period),
+        home_team_id = tostring(payload.home_team_id), away_team_id = tostring(payload.away_team_id),
+        home_score = toint(payload.home_score), away_score = toint(payload.away_score),
+        stats = payload.stats, sent_at_utc, ingested_at_utc = ingestion_time()
+}
+//--
+.create-or-alter function with (folder = "update", docstring = "ReplayRaw -> ReplayTelemetry") Update_ReplayTelemetry() {
+    ReplayRaw
+    | where stream == "replay.telemetry"
+    | extend ingested_at_utc = ingestion_time()
+    | project match_id, session_id, generation_id, replay_t_ms, telemetry_kind = tostring(payload.kind),
+        speed = toreal(payload.speed), paused = tobool(payload.paused),
+        frames_sent = toint(payload.frames_sent), events_sent = toint(payload.events_sent),
+        server_tick_ms = toreal(payload.server_tick_ms), sent_at_utc, ingested_at_utc,
+        pipeline_lag_ms = todouble(datetime_diff('millisecond', ingested_at_utc, sent_at_utc))
+}
+//--
+.create-or-alter function with (folder = "update", docstring = "ReplayRaw -> MatchPredictions (one row per team x target)") Update_MatchPredictions() {
+    ReplayRaw
+    | where stream == "match.predictions"
+    | mv-expand row = payload.rows
+    | project match_id, session_id, generation_id, replay_t_ms,
+        feature_cutoff_ms = tolong(payload.feature_cutoff_ms), model_version = tostring(payload.model_version),
+        phase = tostring(payload.phase), team_id = tostring(row.team_id), target_name = tostring(row.target),
+        probability = toreal(row.p), prob_lo = toreal(row.lo), prob_hi = toreal(row.hi), predicted_value = toreal(row.value),
+        sent_at_utc, ingested_at_utc = ingestion_time()
+}
+//--
+.alter table MatchPredictions policy update @'[{"IsEnabled": true, "Source": "ReplayRaw", "Query": "Update_MatchPredictions()", "IsTransactional": false}]'
+//--
+.alter table TrackingSecond policy update @'[{"IsEnabled": true, "Source": "ReplayRaw", "Query": "Update_TrackingSecond()", "IsTransactional": false}]'
+//--
+.alter table MatchEvents policy update @'[{"IsEnabled": true, "Source": "ReplayRaw", "Query": "Update_MatchEvents()", "IsTransactional": false}]'
+//--
+.alter table MatchState policy update @'[{"IsEnabled": true, "Source": "ReplayRaw", "Query": "Update_MatchState()", "IsTransactional": false}]'
+//--
+.alter table ReplayTelemetry policy update @'[{"IsEnabled": true, "Source": "ReplayRaw", "Query": "Update_ReplayTelemetry()", "IsTransactional": false}]'
+//--
+.create-or-alter function with (folder = "dashboard", docstring = "Latest replay state per active session") fn_LiveSessions(lookback: timespan = 15m) {
+    MatchState
+    | where ingested_at_utc > ago(lookback)
+    | summarize arg_max(sent_at_utc, *) by session_id   // batch rows share ingestion time; order by send time
+    | project session_id, match_id, clock_label, period, home_team_id, home_score, away_score, away_team_id,
+        replay_t_ms, last_sent = sent_at_utc, last_ingested = ingested_at_utc
+}
+//--
+.create-or-alter function with (folder = "dashboard", docstring = "End-to-end lag API -> Eventstream -> Eventhouse") fn_PipelineLag(lookback: timespan = 1h) {
+    ReplayTelemetry
+    | where ingested_at_utc > ago(lookback)
+    | summarize p50 = percentile(pipeline_lag_ms, 50), p95 = percentile(pipeline_lag_ms, 95), p99 = percentile(pipeline_lag_ms, 99),
+        server_tick_p95 = percentile(server_tick_ms, 95), messages = count() by bin(ingested_at_utc, 1m)
+    | order by ingested_at_utc asc
+}
+//--
+.create-or-alter function with (folder = "dashboard", docstring = "Key events as they are reached in replay") fn_KeyEventFeed(lookback: timespan = 1h) {
+    MatchEvents
+    | where ingested_at_utc > ago(lookback) and is_key
+    | project ingested_at_utc, session_id, match_id, clock_label, team_id, player_name, event_type, subtype, outcome, provider_xg, is_goal
+    | order by ingested_at_utc desc
+}
+//--
+.create-or-alter function with (folder = "dashboard", docstring = "Team shape (1 s) for a session") fn_TeamShape(session: string) {
+    TrackingSecond
+    | where session_id == session
+    | project replay_t_ms, home_width_m, home_depth_m, away_width_m, away_depth_m, players_observed_pct, ball_observed
+    | order by replay_t_ms asc
+}
+//--
+.create-or-alter function with (folder = "dashboard", docstring = "Latest model forecasts per active session (features cut at replay time)") fn_LatestPredictions(lookback: timespan = 15m) {
+    MatchPredictions
+    | where ingested_at_utc > ago(lookback)
+    | summarize arg_max(replay_t_ms, *) by session_id, team_id, target_name
+    | project session_id, match_id, replay_t_ms, feature_cutoff_ms, model_version, team_id, target_name, probability, prob_lo, prob_hi, predicted_value
+}

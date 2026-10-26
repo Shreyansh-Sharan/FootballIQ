@@ -1,0 +1,207 @@
+{
+  "properties": {
+    "description": "Football IQ medallion: StatsBomb events + PFF tracking -> bronze/silver -> gold. Notebook/workspace ids are filled in by fabric/scripts/fabric_bootstrap.py.",
+    "parameters": {
+      "game_ids": {
+        "type": "string",
+        "defaultValue": "all"
+      }
+    },
+    "activities": [
+      {
+        "name": "statsbomb_events_bronze_silver",
+        "type": "TridentNotebook",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.02:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_statsbomb_ingest}}",
+          "workspaceId": "{{workspace_id}}"
+        }
+      },
+      {
+        "name": "pff_bronze_silver",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "statsbomb_events_bronze_silver",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.08:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_pff_ingest}}",
+          "workspaceId": "{{workspace_id}}",
+          "parameters": {
+            "GAME_IDS": {
+              "value": {
+                "value": "@pipeline().parameters.game_ids",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "gold_events",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "statsbomb_events_bronze_silver",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.02:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_gold_build}}",
+          "workspaceId": "{{workspace_id}}"
+        }
+      },
+      {
+        "name": "gold_tracking",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "pff_bronze_silver",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.04:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_gold_tracking}}",
+          "workspaceId": "{{workspace_id}}",
+          "parameters": {
+            "GAME_IDS": {
+              "value": {
+                "value": "@pipeline().parameters.game_ids",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "gold_possession",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "gold_tracking",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "statsbomb_events_bronze_silver",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.04:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_gold_possession}}",
+          "workspaceId": "{{workspace_id}}",
+          "parameters": {
+            "GAME_IDS": {
+              "value": {
+                "value": "@pipeline().parameters.game_ids",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "gold_tactical",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "gold_possession",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.04:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_gold_tactical}}",
+          "workspaceId": "{{workspace_id}}",
+          "parameters": {
+            "GAME_IDS": {
+              "value": {
+                "value": "@pipeline().parameters.game_ids",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "table_catalog",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "gold_events",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "gold_tracking",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "gold_tactical",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.01:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60
+        },
+        "typeProperties": {
+          "notebookId": "{{nb_table_catalog}}",
+          "workspaceId": "{{workspace_id}}"
+        }
+      }
+    ]
+  }
+}

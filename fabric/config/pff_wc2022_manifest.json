@@ -1,0 +1,397 @@
+{
+  "source": "https://drive.google.com/drive/folders/1_a_q1e9CXeEPJ3GdCv_3-rNO3gPqacfa",
+  "provider": "PFF FC (Gradient Sports) FIFA World Cup 2022: metadata, rosters, event data, tracking (~30 Hz)",
+  "download_url_template": "https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t",
+  "files": {
+    "Event Data/PFF FC Event Data Specification v2.5.pdf": "1Q5Wg-q2lOdFreqyZqfmWKBXLPE8HJopt",
+    "Tracking Data/PFF FC Tracking Data Specification v2.2.pdf": "17kl9XOlA932IU_K6969VYDYntYJt3Pan",
+    "competitions.csv": "1OLi_v5rQ7z2sdUDhiZIAjONm0euPaPm4",
+    "players.csv": "1zPUE3kf-LFumqjuUqRvKfx_dN85In90x"
+  },
+  "games": {
+    "3812": {
+      "events": "18IDLCaDjkbXzoawnqd45oTMpHy7v56Px",
+      "metadata": "1KYzyCxauhHZIfY_9nqvnAXi83aWr-23q",
+      "rosters": "1iHNONCqc6_Gf2GOvTvCIZopwUq8bXikX",
+      "tracking": "1c1HdSrToX_0RfC92JkVy4ldRJ7M67JI7"
+    },
+    "3813": {
+      "events": "1hKYFuEqIIaIziuhHjgjdZBPg-hPjwJEQ",
+      "metadata": "1Tc1h8rI985dq2DGmZCMa3W1OsN-E4Yuh",
+      "rosters": "1FH1gHOf7k3Ee0IlBktZAqtFOdvP6WNxM",
+      "tracking": "1efRLjG4KXgwBfVritso4VhyCEN2WGv9L"
+    },
+    "3814": {
+      "events": "1EXUgxjh-w5RFxuVg9fDN3SZmHoFjMKRo",
+      "metadata": "10iX17cHWFjAwmZoOCZD78mbNElgzdJho",
+      "rosters": "1hmszFCNZDZpZa0SOpJ2Vw3xby6MXwOHX",
+      "tracking": "16to2wc6UeR2AYikZvQbdW_k0xpCIpAQB"
+    },
+    "3815": {
+      "events": "1fn2bzcsldi96NucieFYopZKGc1kxBOso",
+      "metadata": "1SRuJZoJq1Ix7WuoAhnfRMlxz1NoCJalM",
+      "rosters": "1D8J2NZlPDLnCn2uqFBjewBTiJ1gzP41S",
+      "tracking": "1m841qX2JpERv3z1Cx-D2T4xQDBYzdofH"
+    },
+    "3816": {
+      "events": "1L3NCYMILcirABP2EN8EEF2P32NDD4gBL",
+      "metadata": "1ZP_xXNfn20wHCG84f-nTcwp6RgQOXmQZ",
+      "rosters": "1eaTKW1VdiZOEUnnjhrTfNmdrGhMuiCAp",
+      "tracking": "1wxMkLuN5qNpGzqW9GOtcEfL35h_1D_-F"
+    },
+    "3817": {
+      "events": "1DupAE4t5zaq4Cc8k6HJipzhmhrYtrOKD",
+      "metadata": "1-ECKLzbTRw5Utqx-sUUYYRI1wMe_5eWy",
+      "rosters": "1ID9TBkGiIbl4V7vzE8QGkHGuWlqBwdnh",
+      "tracking": "1mcyrcT6KafIlW1VCJdLxbaFSS7M1hCOb"
+    },
+    "3818": {
+      "events": "13G4Q8ZS9uHMby1_RGM3Dy2B7vFXWYfw4",
+      "metadata": "1102koaeA-u-Ahz6wLKmlB-4_QfC16YhW",
+      "rosters": "1kVkje2ep_Zl2rwcOujo6LFQ6hJq19v2A",
+      "tracking": "1K5lJk3kgfEZJe-4pFYxItSYcvVMuVlTa"
+    },
+    "3819": {
+      "events": "1uJ-IRApyq7eNBApeV880SCVTJsz7xUDL",
+      "metadata": "1DAI_Bu0XSHmcjY114qqwP1WPDzJ7ettH",
+      "rosters": "1MX6hOfImkgCbL4NcCx6Hf4gksgb8l4tR",
+      "tracking": "1CG_hsnQrNYtV_rSsAJ_ljLy1h7QiVBal"
+    },
+    "3820": {
+      "events": "1_fPm8keOCJMoUwPQlJX21qVwaxxJ4SUt",
+      "metadata": "1FwiVFF7qL3xUaRYANJN4ymDOXcQYfSir",
+      "rosters": "1AShogkWUf9kCwi4eh_YhjVor7yhowtIL",
+      "tracking": "19qeCd4qs7U1k675z-FrOpWj3tgAO511k"
+    },
+    "3821": {
+      "events": "1AmIdbUCsG6aFr2DHiQj_zkJ3JeSnCzhJ",
+      "metadata": "1loJUaSJFjNQUUGWJPJzThEJICR1jO13p",
+      "rosters": "1XpMGzcFlwHMTn_SNqXeT64H-6OaJwdoW",
+      "tracking": "142pZZGX4yXrtCyZeU3QAYQgf_KTbKNWZ"
+    },
+    "3822": {
+      "events": "18X7b0qgpG3tlFlZShcfWUuihncZbQC0p",
+      "metadata": "18YFjE-zg1ziXkkllG0MEGyMGtOHoKeaF",
+      "rosters": "1abBBYHzhyNVLIoixVE4j9x3EmMkd0ya6",
+      "tracking": "1sJwoRdLy_3mnd02BJM4xTLbZzRjQYOhZ"
+    },
+    "3823": {
+      "events": "1lDkuRhoj0HGOqoFQHfmBL7J1q4peH2Ad",
+      "metadata": "1X-fbj5VmaO8c5pFEVTHLoiERa-HGwi-p",
+      "rosters": "1H8ZHoOZUssZe_s_aK2n4vUiw2Nphg4hK",
+      "tracking": "1ipjYDk8XJer6Q0IyuaFHunWPAwLNrOSx"
+    },
+    "3824": {
+      "events": "1BPzIiruMtexuknZMo41fP9AnMguyKTP5",
+      "metadata": "12ajSojq3bB8F3ZgmUF01-mcQOchewLlX",
+      "rosters": "1Ffn3I2X9jDdoyT7H3E7iFWofTqZDF9o-",
+      "tracking": "1HGJs3zV1CjBVTqnAObtrl-w3aMm07Aaa"
+    },
+    "3825": {
+      "events": "16C1127BUD9fdalHF2VlVpSc99UFDy5Ex",
+      "metadata": "1QA_Ms_Jh9HT6vIYHe2qIdy_YgA-7vQjX",
+      "rosters": "1IXUo3njQpgDlbrpctaHfY6EX_SWa5JAN",
+      "tracking": "15MzFu2eAxw3O9QKoLJhhumc4SgsH6yAG"
+    },
+    "3826": {
+      "events": "1PX87ZQI__K5CAOnE5YtcvIQscLYFtC1r",
+      "metadata": "1ovNm74I9D9Z-8a3UtcfhWxqf5I5TF6Ww",
+      "rosters": "1Rrww9y682-r7blfVofI3wov86Ws15o24",
+      "tracking": "1cCy9WvqUGw6gHhk1fd3qFTdjZ_iq2yX2"
+    },
+    "3827": {
+      "events": "178j16O7MCm_8-AGOZvFfpAEmcjOTE4Ky",
+      "metadata": "1TzP9kMv7OKju9-utAS1XHNWT3YnKpVWN",
+      "rosters": "1ve594Khu-7LtAV5mjBN2XCdCAAsPnvcY",
+      "tracking": "1eYp8Z0AAI8_LoHnQFKjFrsiuG8Dj9pTF"
+    },
+    "3828": {
+      "events": "1et8VcGdf3_-L8-o9IbgJiS0-6UQydvyW",
+      "metadata": "1uysWds9Hz2YtAuPDqH3UH2xYY6kx96-w",
+      "rosters": "1UebFFcxnDHhtMcP2oQzGnKYY_1m4MuBF",
+      "tracking": "1l2SdBpsHWUftccy2gEwohIsdpdHy7S9H"
+    },
+    "3829": {
+      "events": "1pMCTwSyloUquPexyMguQDLclBSYn6Ej2",
+      "metadata": "1GUzxXIAUrCbWA9kpaLVpwugZyb2OTxVs",
+      "rosters": "1zZIuVsFlm-9IGOxopxbWRQga5gDXS7X9",
+      "tracking": "1_YqwqayrT9mAyw0v6Hqn99dKRDA2dO3b"
+    },
+    "3830": {
+      "events": "1AojwK96eixyi9M_9v8R4UmOk7QUaU9W5",
+      "metadata": "1Ty5WXcf2kA1eICEbn4-0Vjq4ZOLyyjIr",
+      "rosters": "1bKj2WnWWurW6QaWX7jxiCJm67lhfCPCd",
+      "tracking": "1eOGBtHM4-8AAKBpCgZPQU32wL6CCihwb"
+    },
+    "3831": {
+      "events": "1zTAwPrSfz2Waulj2I0ururz8LGmXmxqt",
+      "metadata": "1QCOWi4c4mnopfePDwOd23TyWNWCrz5gE",
+      "rosters": "17yWIYqbvZlOX78zXWIiytlA4oZmb1RcH",
+      "tracking": "1olTwDbe7HiTPFdawtuemlEkr7aI06i9q"
+    },
+    "3832": {
+      "events": "1iv0HY64P6bxBEQeubQRbpjEXhULQiIDK",
+      "metadata": "16NS0yR_lFmlup70f8tH-8MAT7CAetXmg",
+      "rosters": "1XrZp_Hxu6dkb-zuluYO5nnFdDywGK51B",
+      "tracking": "1vq5LcPYkB9vzGEPcPdy5cC_3z_j_3IbR"
+    },
+    "3833": {
+      "events": "1gc6JTnCr8xZvxTmlm-NDSaYisbmtYc7c",
+      "metadata": "1w51YWrOUT6mU6W4sqGY_H0w_70TFRvCx",
+      "rosters": "1uaW4KTOiMBb1ygw0vuAKsrRTJ0q4s26y",
+      "tracking": "1uyLCWc_aYBpdY9gkY_mD8Efp5IRf0Bxb"
+    },
+    "3834": {
+      "events": "1y6Oo2TyJOME_IQx5LvYAZ2_3bBw1Elr0",
+      "metadata": "1hnpVhg54G-uI9nizifMOFXrTz1khHq2E",
+      "rosters": "1_fNZiy78Xo4IFGU3qZuF0Txg8YExKPYr",
+      "tracking": "1JggayMcLZhtWJ3WGLMAtt2z4Y5S-kAVy"
+    },
+    "3835": {
+      "events": "1kmkfJS7SOMSkOanx6SMJL_r0lfbNrwZn",
+      "metadata": "1v4-QUt6UEuvixuDkdFqj1Nbamr6WKuGe",
+      "rosters": "1zKTfVhk6Pv9Az-iibVR4Y4oShbB_aWw5",
+      "tracking": "1JWZCdqSPq8Nvy6IOXpoQRBSvjmuLSP5t"
+    },
+    "3836": {
+      "events": "11IU5eofTSleLkqA6DSYw1wOFsSFj2CbF",
+      "metadata": "1MFbaW2IdVMovRzoPHAcGV5Uuap55la0s",
+      "rosters": "175P0IZVfuJNGbKZwNnwrBRtfke5OP_Ri",
+      "tracking": "1iUuZQVdJ4B6GXHInOasSToZvMVa46HJH"
+    },
+    "3837": {
+      "events": "1OwDQHI6IL1RbJ_45H72bl-jSn5Ju3ZWG",
+      "metadata": "1BwLsVcXdWsG3F0c0mxlMk3FlkSuqKszX",
+      "rosters": "194Z4xdB4wrpxUdIgJq5vKNtVHetmzB9H",
+      "tracking": "1hgecHGpAgMTtbfiZoEJdj2zP8vCoBTNT"
+    },
+    "3838": {
+      "events": "12OxaCUbPTEVzGSSv7n2GeO_Xl6kzBiOc",
+      "metadata": "1SXvwt1axxPVfE0ouL_a5p8Kq6k2RuS15",
+      "rosters": "1JHuYCmOfUTVc_fxT_nmzBUBQK0Ikmm98",
+      "tracking": "1SNp3eoa0OEmQ9tTKdadwWjj6OkqcRCap"
+    },
+    "3839": {
+      "events": "1k3hHonemUngzdm_yOvEt8MJTvXZqh5zn",
+      "metadata": "1gDwsSohrxvNPWYWUL1Kh0KfRfH3PQ4RS",
+      "rosters": "1-1W6NGPoUzB7puMW4W_Xz8fjxlOarDAL",
+      "tracking": "1Tc4B-Fkgdw5eBRchxNpLhWUytOFIerDj"
+    },
+    "3840": {
+      "events": "1zeQs3W4UxfHoWZjgsnL9oDU4w96rPs-4",
+      "metadata": "1dUPhpJKdT_4QrKjGJ3xHLI04yIE5ey90",
+      "rosters": "14q5D2Y9eMbemF3acn0grdQBxn6qO9-el",
+      "tracking": "1bCiIEm1mY9A_Er2Qgh2ACOtRQwMmzo2Y"
+    },
+    "3841": {
+      "events": "1ih3ccNOq6KymEs5AGXvCxL87D9FTBp1W",
+      "metadata": "1FDXCgR57mhuI3mWiitZGHnLVq-kihCSq",
+      "rosters": "1n1jop4eOCAq5BY9c6HhI44n32aO3tAiT",
+      "tracking": "1BrwRxy0mpbUfMmSb_rf3NebMUktA-sx3"
+    },
+    "3842": {
+      "events": "1y1ODvNEgOIdiUs9KPoRjnHEbT9knycrr",
+      "metadata": "1QmRTh2LzCwIsJ-zRnE7vrTN2b-JS2Ubz",
+      "rosters": "1fWTSuj-D0Ddr_ahNBsjt99fFF7oXoqrc",
+      "tracking": "1N6HgYlM7iu5zuF6-swslYczcQEObaqk9"
+    },
+    "3843": {
+      "events": "1ejEnDURkWPEDZMLjVZkZJOjM3buT_3p8",
+      "metadata": "1kA178F9E0-2R85skVWd60cuclgOLONA_",
+      "rosters": "1f8GJ5mFhFv435-OUsBt2a3CloNi97KHx",
+      "tracking": "1JoCSSBlb_pYJm459IuzDi_xQvGzWdKKm"
+    },
+    "3844": {
+      "events": "1Gn3ILmoosp2zt64SoyYCaRTVpmwjyP6J",
+      "metadata": "1q6TnpKj0BkcCNchKrsjNWBDoEV-3WOzJ",
+      "rosters": "16yi4XriCL4hl4pgnpma3RtD33WyLD4xS",
+      "tracking": "1ziBem8mk5DfJXIpQxQv29kYP56wQKy8n"
+    },
+    "3845": {
+      "events": "16hNP_XW6rqbBFg5Wl3pDDkl9iM1FKvSQ",
+      "metadata": "10YVIMkglOoZIiOwQ4LZw55jTt9u5IrRr",
+      "rosters": "1ioB5rXH646epMapb43HHQumXqhfbXd_v",
+      "tracking": "1XcWVaevHxqMP5vhnkKQseP6arnha34rn"
+    },
+    "3846": {
+      "events": "1EufMLRRrY7UUGliuUN8zmKRC4GC878I_",
+      "metadata": "1GXNoVxPGx9R-Akd4HTWlVtjffhQH6g-P",
+      "rosters": "1x2MKDsVesUMqfb7cp9Pdw2SC2ICptycz",
+      "tracking": "1wm4K8l6QcVaasnKnjDWCOvrlk7l-iVyK"
+    },
+    "3847": {
+      "events": "1JeUyUaHgwDGjSbfawud7GsR_fdvR8Yah",
+      "metadata": "1bL6FPsOtET4WtpEAQxBuywh_qN30z6jF",
+      "rosters": "1fRsUQIw5BE4rD0ZTb9r99BlQ_nxfHMWN",
+      "tracking": "1AvoYm7jlkuAWSb7wUdJGDSjohtRx9x6Y"
+    },
+    "3848": {
+      "events": "1tWRDzWz47ybfwLsvI0lCUS9MFVkhVyqc",
+      "metadata": "1XYbJ99VezpizJiHkfMPGsEMW5y2kL_2N",
+      "rosters": "16oTGO_nVrMiDPJniqMAP7igQ9eN64TM4",
+      "tracking": "1o115mNUDfXj79Z0xi3J71mMeyJ-kANMj"
+    },
+    "3849": {
+      "events": "1JONb63sAPkHLv2rZLVFrY0n8TMCjKlZD",
+      "metadata": "1chNFGLeRjWv9CSULNjA49pU1tqFtJw6v",
+      "rosters": "1pGF760PRSdFi8eb2cHPtAw7Tphr7HhDY",
+      "tracking": "1p6fJAK6Org8PFv1mC1g4dgwZ2jiJTKDt"
+    },
+    "3850": {
+      "events": "1m7foP7xwzddFMAThxTb8hWUl_9qDPgLR",
+      "metadata": "1T6xJz7CC6cvndrCzc4leXpiko8sQ0z8Y",
+      "rosters": "1TmoBFxYWUQR96q6YXT2gZIYePfjz7nEt",
+      "tracking": "1JOlZW03SIyXJQevXLalVhoEkhbqIcaKQ"
+    },
+    "3851": {
+      "events": "1PMafOoMfvtQCBvSACeo6ZW7W5qzDDZSf",
+      "metadata": "15vKHzi8vhssyTuxS-FGgMbyDi20JCV1q",
+      "rosters": "1vQU_o_ivjwJ3hcSMLxzeoz8TtwATuAQu",
+      "tracking": "1CT8xi9MzCcZCrbEFnoHq-GJbY3fa_3ZW"
+    },
+    "3852": {
+      "events": "1luPQXxq2Md4ZLn9v__e94q19Lta2hoVh",
+      "metadata": "1uXbCbFTJJq2c1YEyPkmEtfUTDFr5D2ol",
+      "rosters": "12Ive5s_53UeSZFGwMyj90_R6WAgLtFFY",
+      "tracking": "16qUd19JfreloCpHmZndg6euERvfX7oUx"
+    },
+    "3853": {
+      "events": "1Q87rqmzqkNtB6bsWR4GRrWlAokEJrA9a",
+      "metadata": "1bXTJwLXWX7mLZ6rKhbx87HodabrJ3JRt",
+      "rosters": "1e5pApHrr6fY5mmQpAPH94wobd-Jt7h2l",
+      "tracking": "1oF4E5Vak1or1abDpsbpmEs99Qkgu-17N"
+    },
+    "3854": {
+      "events": "1CpLrBG-q4FL63RTMC2rgNvkGZ-NLvdp8",
+      "metadata": "1O-sGDKd8_g1HWHJM3Hqpn4jzw7EMnZhC",
+      "rosters": "149hjHGjZh1pZnr1TJAVrSaYoWCHBWe79",
+      "tracking": "11jzsqheqV00ClFkoLKwQHJJnG_EaHG3a"
+    },
+    "3855": {
+      "events": "1qxJcCTLIq5d_UbJjfW5CzP5Oy60c9ZcO",
+      "metadata": "1-J-Nd7tA2jvQMJmxdLcnF9QoWHFsgJkE",
+      "rosters": "1V9LZae8LffAgJoPsFfSiGgAZ-ECipjwK",
+      "tracking": "1tnxYVtXrIESTlgTq8155BCzHlygHGIVS"
+    },
+    "3856": {
+      "events": "1c1pjJ5k4uir43IFphBzWj45TzcZPd-CN",
+      "metadata": "1qGcskAsleHVWRS2Z82V2z16xx5_EXK0n",
+      "rosters": "1xayiU5RLIZYliLILYPINS5PyEyrAe7iJ",
+      "tracking": "1FG9D6DWKlPu-S157G-mLoJgJ76bAu4Bz"
+    },
+    "3857": {
+      "events": "1vitJQ9Yh4xVAeOV0VhgNVOc6C0QS_-G0",
+      "metadata": "1GOUsQIE78-oBcs0mD-8VfYenwMG7zd-K",
+      "rosters": "1cKygKfjmM6ryiiZCxnacQFacvuD1MWbv",
+      "tracking": "1UwuVYtQNvnUT5-eTDpF7-WanggQPYwY-"
+    },
+    "3858": {
+      "events": "1z-ktvUjBbI-bjGvHtwZj07QIstlb5qmo",
+      "metadata": "1k9Y_LZAkef0psLOB9IskaiY-NnQmpK6W",
+      "rosters": "10In4m0m0wCQPbUqbh8EysXgHpp9nYvvr",
+      "tracking": "1w34ldL-eLFUJzo0tSBFuneDBMuSiYiK1"
+    },
+    "3859": {
+      "events": "1yXQcyWaE7QM3RfvQPc0AWT2NtvcHcXh-",
+      "metadata": "1Z11ZsUiPkNR8UtiL4k7vbIlOnJb_SB6O",
+      "rosters": "1Dqwp4hxQNYBuO-7B3gxgx2BXq9Yb00rj",
+      "tracking": "1gek9NwcYfp2U-RYeN__aaXgxGvvfI2_-"
+    },
+    "10502": {
+      "events": "1Q8SmSd0Ph0uT-n9f85NgX08pKNuZLyCv",
+      "metadata": "1HJysGSl1oJc5f_tRlpmkoHodtKan-m4M",
+      "rosters": "1lUpYHS1bNS4jjZnFBpc06Tx6RXG0IBNO",
+      "tracking": "1CsMUWAAiWmiA4N7VYZ6UfJ7n5_Zth0si"
+    },
+    "10503": {
+      "events": "1xe1q5U7KfceVou8jXbaTdG3hwjoG22mf",
+      "metadata": "1K1KHxjjqwyilGBtTOzlLhZN5BMsrWvgP",
+      "rosters": "1Z-5oJ6nWijuBOhUUaOEhH9skbtKXvZOD",
+      "tracking": "1-SLhHTR1d4m5NjZNG60hdYVFU54Pu1jD"
+    },
+    "10504": {
+      "events": "1ikeWGqan4CVTs8S4RBBWddB--NqRgbl5",
+      "metadata": "1hTd9Jrecy4mJV51YPHJTMJ2LPatiz64c",
+      "rosters": "1VtNXanQ3XYjsiHEn1_zuvbrrI5WS6mLk",
+      "tracking": "1CZENmWXqU_fttgXDIoBXED8XqLBJk6cu"
+    },
+    "10505": {
+      "events": "1zIxWIKY3WkGSpNOOon0eS_3whQEA6TXK",
+      "metadata": "1uLsR0mTZO7ZG3itERW-Eq3WDPQp7jPeW",
+      "rosters": "16UOBFPGreadc9Ay6YBHe_rYtso-1PE0x",
+      "tracking": "1RhNAsNTPRa59sbp1E0GYY3MFqLhfu7aq"
+    },
+    "10506": {
+      "events": "1RnGdMm4ChIt-Tem8MID6Ym5bkmIYt0rU",
+      "metadata": "1-IMOz-NJ17N0d0cqNaNb5IY38CpcHTiG",
+      "rosters": "1cZBdhRJySDkE_YPWvB-uNuY_ZAmBOA8-",
+      "tracking": "1mBKFSXCksODBpTgakXN_VQKCUKOH4mBw"
+    },
+    "10507": {
+      "events": "1hhxfeTO1QrHL_wCZQvdpKjNwvnbUg4u1",
+      "metadata": "1PhzVr4cGZ3P6-XQFqomh709mSMlvGY4i",
+      "rosters": "1mjm50gm4UFrpTOL7p-6uyBnuOt-ADTG2",
+      "tracking": "1T0dx4YvpkycARke_Nv0JtfOhue4u50Cn"
+    },
+    "10508": {
+      "events": "1XaugtzSDB8nfCAZ2etorrYWDjWJfdvFF",
+      "metadata": "1Sk-6jDmn37Q1aOfWK1U9fH1qfXrUywqe",
+      "rosters": "1CRZwCVtXiiSvyYUT77QqW9g31guW_liK",
+      "tracking": "1GtxCEI3m09RqKg86_v-3ydMozfumgaGO"
+    },
+    "10509": {
+      "events": "1egJ_RQsfLCTq0-qZYp5XLiX20N7izHt1",
+      "metadata": "1yyPT-OLMpH0hvQRCvzhKmFapA1YQ6YXd",
+      "rosters": "1wqDFUNT-0gcxwOPYL-F1JOgmthDIZZr1",
+      "tracking": "1pibrzrQVV73ia9n7aXMEMm1LrRS6v62J"
+    },
+    "10510": {
+      "events": "1AAOqw7GAUiXhGPB80s3BpUcCUuzgu4Bj",
+      "metadata": "1k7PSGpRn30m19SL2XzEbmdE61QvtBTV_",
+      "rosters": "1iB8nP1BOl3Xhx00PpABygH5C5jkozSQL",
+      "tracking": "1JRA4_cZtKDVIFObR5xcIS4Xd1TbCxIv3"
+    },
+    "10511": {
+      "events": "1Ls0zZ2hRra-ce5y1yNe82XA1cosg3lX1",
+      "metadata": "1pkl4RkVS2WRdTBSDJTV1V8CIu0Uelygi",
+      "rosters": "1ubB71pZVtbP2LhHgDrbogsvdwur81Pw-",
+      "tracking": "11uooPdjAPFpb7AlMHher22NnPjrJt2xX"
+    },
+    "10512": {
+      "events": "1P6OsOjBjrY--8cOZwh_f89n3uGIohTmI",
+      "metadata": "1j2POWEp1eDYiSzgp4u8o7HF7gp4ATbGd",
+      "rosters": "1pBAJRzK1lfj7dD5LKTo_BxHz8fJB-3N3",
+      "tracking": "10-vVPArAJtpMuYOa2zJUWjjPBcMVSsac"
+    },
+    "10513": {
+      "events": "1Kxa-UBPcnOrxRO3lvUJZZqpsW8fTCjj8",
+      "metadata": "1lO6hi9wKyH5oq1XOM2upbowuDHfJrRe5",
+      "rosters": "1klHPTRqfNDYClEIAcLWZ5CjVGJ3IRSKE",
+      "tracking": "1SR0kNWjg75VuCFgVgdvCmcm941Wap3PH"
+    },
+    "10514": {
+      "events": "1TLOL4jhfzGPc66cPBDdgJjCvpBxK47pT",
+      "metadata": "176d8OapsetvHCwccT1195VYvul6uQxJ-",
+      "rosters": "15robyO-dKO3l_1ODNHvdXOPFCqpgFXlt",
+      "tracking": "1g6Rvk_HbF0gj_XHdl0v4DO0qzhU93mUV"
+    },
+    "10515": {
+      "events": "179PZfbvkfeWbXCPY4xiz2jpKrR9riecd",
+      "metadata": "1smDKRdsT-yitpxhep7pCvSs-MoAq-1pu",
+      "rosters": "1-qN49cLkzEcyVF7jODAcQGbUSXKmubJB",
+      "tracking": "1u_xonDBIcHQaDcRc-vntQzSsCwvqoSUJ"
+    },
+    "10516": {
+      "events": "1azNCr34b8GqQGpElF3I2KPoNOCT0d9Nu",
+      "metadata": "1Gp-AkGYBXJijyY-fWsrV4ZBP3xq-rheE",
+      "rosters": "1M3guc4Y2NBDw6hGMCflLFZqdk1JSCXwo",
+      "tracking": "10DoFkFWjIDJaK6mo56SqcV925l7opBSP"
+    },
+    "10517": {
+      "events": "1Zi9rP8x4-V-9AQ_jGysmkU14wuFgzsIv",
+      "metadata": "1Xfvmdv7XiZAUumPbjGqYfrUVAhX-0Dl3",
+      "rosters": "1nJcElKpNPp_Tl2TNaOhvdCh5E98T2YtR",
+      "tracking": "1punYKj2mY1HtewOJ5V1EFO7gHn0jaQm0"
+    }
+  }
+}
