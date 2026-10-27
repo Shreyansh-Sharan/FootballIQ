@@ -31,6 +31,7 @@ class TacticalStore:
         self.lh = lakehouse
         self.max_cached = max_cached
         self._cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        self._forms: OrderedDict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = OrderedDict()
         self._lock = threading.Lock()
 
     def _load(self, match_id: str) -> dict[str, Any]:
@@ -129,17 +130,31 @@ class TacticalStore:
                         "depth_in_possession_m": _num(r.get("depth_in_possession_m"))} for r in rows),
                       key=lambda x: (order.get(x["window_id"], 99), x["team_id"]))
 
-    def formations(self, match_id: str, at_ms: int) -> dict[str, Any]:
-        """Smoothed 60 s formation timeline and switches, only for segments that have ended by at_ms."""
+    def _formation_tables(self, match_id: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        """The match's whole formation timeline and switches, queried once (one query per clock was seconds each time)."""
+        with self._lock:
+            if match_id in self._forms:
+                self._forms.move_to_end(match_id)
+                return self._forms[match_id]
         mid = sql_str(match_id)
         try:
             tl = self.lh.query(f"select team_id, start_ms, end_ms, raw_formation, confidence, formation from t where match_id = {mid} "
-                               f"and end_ms <= {int(at_ms)} order by start_ms", {"t": "gold_formation_timeline"}).to_pylist()
+                               f"order by start_ms, team_id", {"t": "gold_formation_timeline"}).to_pylist()
             sw = self.lh.query(f"select team_id, at_ms, from_formation, to_formation from t where match_id = {mid} "
-                               f"and at_ms + 60000 <= {int(at_ms)} order by at_ms", {"t": "gold_formation_switches"}).to_pylist()
-        except Exception:  # noqa: BLE001 - tables are built by nb_gold_tactical
-            tl, sw = [], []
-        return {"segments": tl, "switches": sw,
+                               f"order by at_ms, team_id", {"t": "gold_formation_switches"}).to_pylist()
+        except Exception:  # noqa: BLE001 - tables are built by nb_gold_tactical; not cached, they may appear later
+            return [], []
+        with self._lock:
+            self._forms[match_id] = (tl, sw)
+            while len(self._forms) > self.max_cached:
+                self._forms.popitem(last=False)
+        return tl, sw
+
+    def formations(self, match_id: str, at_ms: int) -> dict[str, Any]:
+        """Smoothed 60 s formation timeline and switches, only for segments that have ended by at_ms."""
+        tl, sw = self._formation_tables(match_id)
+        return {"segments": [dict(s) for s in tl if s["end_ms"] <= at_ms],
+                "switches": [dict(s) for s in sw if s["at_ms"] + 60_000 <= at_ms],
                 "method": "60 s out-of-possession segments, Hungarian template match; a switch needs 2 consecutive confident segments"}
 
     # ------------------------------------------------------------------ physical

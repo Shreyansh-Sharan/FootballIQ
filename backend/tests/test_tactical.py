@@ -23,9 +23,16 @@ class FakeLakehouse:
                 "player_name": ["Nine"] * 3, "position_group": ["CF"] * 3, "second": [10, 11, 12],
                 "distance_m": [5.0, 8.0, 2.0], "avg_speed_mps": [5.0, 8.0, 2.0], "max_speed_mps": [5.2, 8.4, 2.5],
                 "frames": [30, 30, 30], "observed_frames": [30, 15, 0]}),
+            "gold_formation_timeline": pa.table({
+                "team_id": ["home-fc"] * 3, "start_ms": [0, 60_000, 120_000], "end_ms": [60_000, 120_000, 180_000],
+                "raw_formation": ["4-3-3", "4-4-2", "4-4-2"], "confidence": [0.9, 0.8, 0.85], "formation": ["4-3-3", "4-3-3", "4-4-2"]}),
+            "gold_formation_switches": pa.table({
+                "team_id": ["home-fc"], "at_ms": [120_000], "from_formation": ["4-3-3"], "to_formation": ["4-4-2"]}),
         }
+        self.sql: list[str] = []
 
     def query(self, sql, tables):
+        self.sql.append(sql)
         return self.t[next(iter(tables.values()))]
 
 
@@ -49,3 +56,14 @@ def test_physical_accumulates_up_to_clock():
     assert p["distance_km"] == 0.013 and p["sprint_km"] == 0.008 and p["hsr_km"] == 0.008
     assert p["top_speed_kmh"] == round(5.0 * 3.6, 1)  # speed held over 2 consecutive seconds (5 then 8 m/s)
     assert ts.physical("m", 60_000)[0]["distance_km"] == 0.015
+
+
+def test_formations_cut_at_the_clock_and_queried_once_per_match():
+    lh = FakeLakehouse()
+    ts = TacticalStore(lh)
+    early = ts.formations("m", 125_000)
+    assert [x["end_ms"] for x in early["segments"]] == [60_000, 120_000] and early["switches"] == []
+    late = ts.formations("m", 180_000)
+    assert [x["formation"] for x in late["segments"]] == ["4-3-3", "4-3-3", "4-4-2"]
+    assert [(x["from_formation"], x["to_formation"]) for x in late["switches"]] == [("4-3-3", "4-4-2")]
+    assert len(lh.sql) == 2 and all("<=" not in q for q in lh.sql)      # whole timeline once, cut in memory
