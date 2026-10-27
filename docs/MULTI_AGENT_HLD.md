@@ -52,7 +52,7 @@ The evidence from 2025–2026 supports this shape, with limits:
 | Component | What the team takes from it or gives to it | Contract | Status |
 |---|---|---|---|
 | **Replay engine** (virtual clock) | The run's clock (`at_ms`) and the minute label | Every tool is built for one `at_ms`; nothing after it exists | built |
-| **Match tools** (`agents/tools.py`) | The ten clock-bounded functions, shared with the single agents | Permissions per specialist; ids translated by the alias book | built |
+| **Match tools** (`agents/tools.py`) | Ten clock-bounded functions shared with the single agents, plus the goal build-up for the team | Permissions per specialist; ids translated by the alias book | built |
 | **Matchday analytics** | Flow, shape, shots and tactical windows through the tools | Read-only, cut at the clock | built |
 | **Coach analytics** | Player form, physical load, substitution options | Read-only, cut at the clock | built |
 | **Fabric Gold tables** (OneLake) | Events, tracking metrics, tactical windows | Delta reads with an Arrow result cache | built |
@@ -108,6 +108,7 @@ Newer multi-stage techniques worth adopting, in order:
 | Fictional names, public ids | Alias book on tool input and output, question and answer scrubbed | Privacy middleware fails closed on every response |
 | Neutral sources | Shared rules for every role; verifier replaces provider names | Verifier issues list |
 | Every number from the data | Specialists copy numbers from tool outputs; verifier grounds every number with one revision | `verification` object on every run, shown as a badge |
+| Honest confidence | When a specialist reports missing data, the answer's confidence is at most medium, with the reason | Verifier issues list |
 | Bounded cost | ≤ 4 specialists, 5–6 tool calls each, shared tool cache, identical questions in a 15 s window share one run | Usage counters on every run |
 
 ---
@@ -147,7 +148,7 @@ quadrantChart
 | 3 | **Catch me up** | Joined at 63′? A 60-second recap of 0–63′ in your language and voice | Recap plan bounded by the clock; speech for EN / ES / HI | Prime Video "Rapid Recap"; personalised recaps at Peacock and ESPN | S |
 | 4 | **Answer cards** | Answers arrive as pitch graphics (shot map, pass network), not paragraphs | Synthesizer emits a card spec built only from tool output; schema-checked | Wimbledon Match Chat answers with media; Google A2UI v0.9 (2026) | M |
 | 5 | **Ambient insights** | The match taps you on the shoulder only when something matters | Activator rules on Eventstream start a 1–2 specialist run, rate-limited per perspective | MLB Scout Insights at key moments (2026-03-27) | M |
-| 6 | **Half-time brief** | Three evidence-backed adjustments the coach accepts or edits; the second half tracks them | All four specialists with a coach rubric; human approval step | FIFA's coach assistant is limited to before and after matches (2026-01-07); replay-as-live allows training use | M |
+| 6 | **Half-time brief** | Three evidence-backed adjustments the coach accepts or edits; the second half tracks them | All five specialists with a coach rubric; human approval step | FIFA's coach assistant is limited to before and after matches (2026-01-07); replay-as-live allows training use | M |
 | 7 | **Commentary style matrix** | The same facts as "tactics nerd", "casual" or "kids", in EN, ES or HI | Styles on top of the specialists' facts; verifier checks the numbers match across styles | Bundesliga AI ticker styles; Eurovision Sport multilingual AI commentary, labelled as AI (2026-07-13) | S–M |
 | 8 | **Producer cues** | Ranked graphic cues for broadcast with stat, timing and evidence | Scheduled and triggered runs output cue-sheet rows | Bundesliga "Data Story Finder" | S–M |
 | 9 | **Match MCP server** | Any assistant can ask about a match "as of minute X", safely | The ten tools as a stateless MCP server with a mandatory clock parameter | MCP 2026-07-28 spec is stateless; no league publishes a clock-bounded match server | S–M |
@@ -162,7 +163,7 @@ quadrantChart
 ```mermaid
 timeline
   title Agent team roadmap
-  Now (built) : Six-stage pipeline · 4 specialists · deterministic verifier · Agent team panel and "Ask the team"
+  Now (built) : Six-stage pipeline · 5 specialists incl. Defensive analyst · deterministic verifier · Agent team panel and "Ask the team"
   Next (P0, before 2027-03-31) : Move the two single agents off the classic Foundry Agent Service API · Fast path and effort scaling in Plan · Hard per-call timeouts
   Soon (P1) : Agent Framework workflows with checkpoints · AG-UI streaming instead of polling · OTel GenAI traces into the Eventhouse · Match MCP server
   Later (P2-P3) : Foundry evaluations and red teaming as CI gates · A2A endpoint for partner agents · Model routing per stage · Voice Live watch-along

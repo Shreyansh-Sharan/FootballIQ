@@ -9,8 +9,9 @@ from fastapi.testclient import TestClient
 
 from footballiq.agents.orchestrator import Limits, Orchestrator, RunContext, RunRequest, RunStatus
 from footballiq.agents.orchestrator.llm import ChatResponse, ToolCall, parse_json
+from footballiq.agents.orchestrator.registry import SPECIALISTS, tool_specs
 from footballiq.agents.orchestrator.roles import fallback_plan
-from footballiq.agents.orchestrator.verifier import verify
+from footballiq.agents.orchestrator.verifier import cap_confidence, verify
 from footballiq.agents.tools import MatchTools
 from footballiq.api.app import create_app
 from footballiq.api.orchestrator import minute_float
@@ -71,6 +72,12 @@ def test_fallback_routing_by_keywords():
     assert [t.specialist for t in fallback_plan("Who should we substitute? He looks tired").tasks] == ["performance"]
     assert {t.specialist for t in fallback_plan("Is their formation a back three, and who controls possession?").tasks} == {"tactician"}
     assert [t.specialist for t in fallback_plan("What's going on?").tasks] == ["tactician", "threat", "forecaster"]
+    assert [t.specialist for t in fallback_plan("How could Away FC have avoided that goal?").tasks] == ["defence"]
+
+
+def test_defence_specialist_gets_the_build_up_tool():
+    assert "get_goal_buildup" in SPECIALISTS["defence"].tools
+    assert [t["function"]["name"] for t in tool_specs(SPECIALISTS["defence"].tools)].count("get_goal_buildup") == 1
 
 
 def test_unusable_plan_falls_back_to_keywords():
@@ -152,6 +159,24 @@ def test_verifier_grounding_percentages_formations_and_future():
     assert verify("Goal at 90+5'.", [], minute_float("90+4'")).future_minutes == ["90+5'"]
 
 
+def test_confidence_is_capped_when_a_specialist_reports_missing_data():
+    class Gappy(Scripted):
+        def complete(self, messages, **kw):
+            r = super().complete(messages, **kw)
+            if kw.get("role") not in ("planner", "synthesizer") and not r.tool_calls:
+                d = json.loads(r.content)
+                return ChatResponse(json.dumps(d | {"data_gaps": ["no tracking at this moment"]}))
+            return r
+
+    run = _orch(Gappy(synth=["Home FC lead.\nConfidence: high - every report agrees"])).run_sync(_req())
+    assert run.status == RunStatus.DONE and run.answer.endswith("Confidence: medium - some of the data the specialists needed is not available")
+    assert any("confidence lowered" in i for i in run.verification.issues)
+    clean = _orch(Scripted(synth=["Home FC lead.\nConfidence: high - every report agrees"])).run_sync(_req(question="Who leads?"))
+    assert clean.answer.endswith("Confidence: high - every report agrees")
+    assert cap_confidence("**Confidence:** Alta - x\nok", "es") == (
+        "**Confidence:** Media - parte de los datos que necesitaban los especialistas no está disponible\nok", True)
+
+
 def test_parse_json_tolerates_fences():
     assert parse_json('Sure:\n```json\n{"a": {"b": 1}}\n```') == {"a": {"b": 1}}
     assert parse_json("no json") is None
@@ -164,7 +189,7 @@ def test_api_team_endpoints(monkeypatch):
     app.state.orchestrator = _orch(Scripted())
     c = TestClient(app)
     roster = c.get("/v1/agents/team").json()
-    assert {s["key"] for s in roster["specialists"]} == {"tactician", "threat", "forecaster", "performance"}
+    assert {s["key"] for s in roster["specialists"]} == {"tactician", "threat", "forecaster", "performance", "defence"}
     d = c.post("/v1/matches/m-test/agents/team", json={"question": "Who is on top?", "at_ms": 25 * MIN, "wait": True}).json()
     assert d["status"] == "done" and d["answer"] and d["verification"]["status"] == "pass"
     assert c.get(f"/v1/agents/runs/{d['id']}").json()["id"] == d["id"]

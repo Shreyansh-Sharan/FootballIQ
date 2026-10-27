@@ -4,6 +4,7 @@
    rounding and for probabilities written as percentages (0.231 -> 23.1% / 23%).
 2. No future: a minute mentioned in the answer may not be later than the current minute.
 3. Neutral sources: no data-provider or vendor names (they are replaced and reported).
+4. Honest confidence: "Confidence: high" is lowered to medium when a specialist reported missing data or did not report.
 """
 
 from __future__ import annotations
@@ -21,6 +22,11 @@ VERSION = re.compile(r"\bv?\d{8,}(?:-c\d{8})?\b")
 PROVIDERS = [(re.compile(r"StatsBomb", re.I), "event data"), (re.compile(r"\bPFF\b(\s*FC)?", re.I), "tracking"),
              (re.compile(r"SkillCorner", re.I), "tracking"), (re.compile(r"\bIDSSE\b", re.I), "tracking")]
 TOL_ABS = 0.051
+CONFIDENCE = re.compile(r"(Confidence[\s:*_-]{0,6})(high|alta|उच्च)[^\n]*", re.I)
+LOWER = {"high": "medium", "alta": "media", "उच्च": "मध्यम"}
+GAP_REASON = {"en": "some of the data the specialists needed is not available",
+              "es": "parte de los datos que necesitaban los especialistas no está disponible",
+              "hi": "विशेषज्ञों को जो कुछ डेटा चाहिए था, वह उपलब्ध नहीं है"}
 
 
 def _values(texts: Iterable[str]) -> set[float]:
@@ -58,6 +64,17 @@ def neutralise(text: str) -> tuple[str, list[str]]:
             found.append(rx.pattern)
             text = rx.sub(rep, text)
     return text, found
+
+
+def cap_confidence(answer: str, lang: str = "en") -> tuple[str, bool]:
+    """Lower a stated "high" confidence to medium and give the reason (the label stays English; the value may be Spanish
+    or Hindi)."""
+    def lower(m: re.Match) -> str:
+        v = m.group(2)
+        low = LOWER.get(v.lower(), "medium")
+        return m.group(1) + (low.capitalize() if v[:1].isupper() else low) + " - " + GAP_REASON.get(lang, GAP_REASON["en"])
+    out, n = CONFIDENCE.subn(lower, answer, count=1)
+    return out, n > 0
 
 
 def verify(answer: str, evidence: Iterable[str], current_minute: float, allow: Iterable[str] = ()) -> Verification:

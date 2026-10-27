@@ -42,7 +42,7 @@ Every step is recorded in a trace that the UI polls, so the user watches the tea
 ![Multi-agent orchestrator (LLD)](architecture/06-multi-agent-lld.png)
 
 [SVG](architecture/06-multi-agent-lld.svg). The same view as the other architecture diagrams: the stages with their output,
-gate and fallback, the four specialists and their tool permissions, the blackboard, the clock-bounded match tools, the
+gate and fallback, the five specialists and their tool permissions, the blackboard, the clock-bounded match tools, the
 run engine, and two measured runs. How the team connects to the rest of FootballIQ is in
 [the HLD diagram](architecture/05-multi-agent-hld.png).
 
@@ -77,10 +77,11 @@ Moment Explainer agents; it sits beside them (the UI offers "Single analyst" and
 | `agents/orchestrator/registry.py` | The team: `Specialist` entries (role, brief, tool permissions, budget); planner, specialist-output, synthesizer and revision prompts; personas and languages |
 | `agents/orchestrator/blackboard.py` | Shared tool access for one run: permission check, single-flight cache, evidence log |
 | `agents/orchestrator/roles.py` | `plan()` + `fallback_plan()`, `run_specialist()` tool loop, `synthesize()`, report normalisation |
-| `agents/orchestrator/verifier.py` | Number grounding, future-minute check, provider-name neutralisation |
+| `agents/orchestrator/verifier.py` | Number grounding, future-minute check, provider-name neutralisation, confidence cap |
 | `agents/orchestrator/engine.py` | `Orchestrator`: run store, de-duplication, worker pools, deadlines, the pipeline, tracing |
 | `api/orchestrator.py` | Routes, request model, `context_factory` (builds a `RunContext` from the `AgentService`) |
 | `agents/service.py` | `AgentService.tools_for()` (public accessor used by the orchestrator) |
+| `buildup.py` | Goal build-up for the Defensive analyst: the move from the turnover, restart or foul to the shot, and positions from tracking (section 6.2a) |
 
 ```mermaid
 classDiagram
@@ -303,6 +304,8 @@ stages 3 and 4) is a function in `roles.py` plus one call in `Orchestrator._exec
 - **Fallback (`fallback_plan`):** if the call fails or yields no valid task, a keyword router picks specialists
   (`ROUTES` in `roles.py`); a question that matches nothing goes to tactician + threat + forecaster. `plan.source` records
   which path was used.
+- **Goal questions:** a question about how a goal or chance happened, or how it could have been stopped, always includes
+  `defence` (a planner rule, and the first keyword route).
 - **Reasoning effort:** `low` (routing needs little reasoning; measured 5–7 s vs 8 s at default).
 
 ### 6.2 Specialists (`roles.run_specialist`)
@@ -313,6 +316,7 @@ stages 3 and 4) is a function in `roles.py` plus one call in `Orchestrator._exec
 | `threat` | Chance & threat analyst | match context, shot quality, forecasts, key events | 5 calls |
 | `forecaster` | Game-state forecaster | match context, forecasts, match stats | 5 calls |
 | `performance` | Performance & fitness coach | match context, player form, physical, substitution options, best player, key events | 6 calls |
+| `defence` | Defensive analyst | match context, goal build-up, shot quality, key events, tactical shape | 5 calls |
 
 Algorithm:
 
@@ -336,10 +340,31 @@ repeat up to budget+2 rounds:
 Report contract (normalised): `summary`, 2–5 `findings {claim, evidence, confidence}`, `recommendation | null`,
 `data_gaps[]`. Reports are internal (English); only the synthesizer's text reaches the user.
 
+### 6.2a Goal build-up (`buildup.goal_buildup`, tool `get_goal_buildup`)
+
+The Defensive analyst's tool. It answers "how could this goal have been avoided?" from data the other tools do not
+expose. It takes the latest goal before the clock, or any goal or shot by `event_id`.
+
+| Step | Rule |
+|---|---|
+| Where the move starts | Walk back from the shot to the conceding team's last on-ball action (pass, carry, dribble, receipt, recovery, dispossession, miscontrol, clearance, interception, keeper action), or to the attacking team's restart (throw-in, corner, free kick, goal kick, kick-off); at most 120 s and never across a period |
+| Penalty or direct free kick | The move is the one that drew the foul: the conceding team's latest foul before the kick (within 240 s) |
+| Rebound | When the ball was lost from a keeper action, clearance or interception in the last 6 s, the move that forced it is added |
+| The move | Seconds, passes, players, metres towards goal, actions under pressure; each action with distance to goal; the defending actions against it (pressures, duels, dribbled past) |
+| Positions | At the turnover (or restart), the last pass and the shot: conceding outfield players goal-side of the ball against attackers ahead of it, last-line height, nearest defender (named) to the ball, the scorer and the shooter, players in the box, keeper off the line |
+| Tracking and events | Tracking runs ahead of the events by up to about a second, so the frame used is the one, within 2 s before and 0.8 s after the event, whose ball is nearest the event's location (≤ 6 m). Without one, the event's 360 snapshot is used and labelled "players in view only" |
+| Clock and privacy | Events and frames stop at `at_ms`. Tracking players are linked to the line-up by shirt; a player who cannot be linked is counted but not named |
+
+It is registered in `TEAM_TOOL_SPECS`, not `TOOL_SPECS`, so the Foundry agents' definitions do not change. Typical
+output is 2.5–4 k characters and takes 2–20 ms.
+
 ### 6.3 Synthesizer (`roles.synthesize`)
 
 - **Input:** shared rules + persona + language; the question; all reports keyed by specialist title; the specialists
-  that could not report (so it can say what is missing).
+  that could not report and every data gap the specialists listed (so it can say what is missing and keep confidence at
+  medium or low).
+- **Numbers:** written as a broadcast would (xG to 2 decimals, whole metres, match minutes); never field names, event
+  ids or milliseconds.
 - **Format:** the same as the single Strategist (first line answers; 2–4 bullets with number + source; `Recommendation:`;
   `Confidence: high|medium|low - why`), so the UI renders both with one component. Labels stay in English in every language.
 - **Personas** (`registry.PERSONA`): coach (one coachable action), analyst (numbers first, with sources), fan (warm,
@@ -354,6 +379,7 @@ Report contract (normalised): `summary`, 2–5 `findings {claim, evidence, confi
 | Formations and scores | Tokens like `4-3-3` and `2-2` must appear as written in the evidence, or every part must be grounded |
 | No future | Every minute mention (`73'`, `90+3'`) must be ≤ the current minute (stoppage minutes order as 90.03 etc.) |
 | Neutral sources | Data-provider and vendor names are replaced (`neutralise`) and reported as issues |
+| Honest confidence | If a specialist reported a data gap or could not report, `Confidence: high` becomes medium with a stated reason (English, Spanish or Hindi) and an issue is recorded |
 
 Outcome: `pass`, `warn` (unverified numbers or provider names) or `fail` (future minutes). If anything is unverified
 and at least 10 s of the deadline remain, the synthesizer gets **one** revision request listing the problems; the
@@ -437,6 +463,11 @@ Python threads release the GIL during network I/O, which is where the time goes.
 | Warm, default reasoning | 43 s | 8.6 s | 11 s | 22.5 s | 6 | 15 764 / 1 851 |
 | Warm, `low` for planner + synthesizer | 43 s | 5.1 s | 23 s | ~15 s | 6 | — |
 
+Goal questions with the Defensive analyst ("How could Azuria / Solaria have avoided the goal they just conceded?" at
+36′ and 82′, 2026-10-28): 28.1 s and 24.3 s, 6 model calls, about 11–12.5 k prompt and 2.4 k completion tokens, every
+number verified (15 each). Before the build-up tool, the same questions took 50 s and 40 s and missed that both goals
+came from fast breaks.
+
 Specialist time depends on how many tool rounds the model takes (1–3). Further levers: stream the synthesizer's text to
 the UI; let the planner answer trivial questions directly; pre-warm the agent service at start-up (it is created lazily today).
 
@@ -468,7 +499,10 @@ the UI; let the planner answer trivial questions directly; pre-warm the agent se
 | `test_slow_specialist_is_skipped_at_the_deadline` | Deadline handling; run still completes |
 | `test_identical_requests_share_one_run_and_unknown_match_fails_cleanly` | De-duplication; clean failure |
 | `test_verifier_grounding_percentages_formations_and_future` | Percent conversion, formations, stoppage-time minutes, provider names |
-| `test_api_team_endpoints` | Routes, validation, polling, 404 |
+| `test_defence_specialist_gets_the_build_up_tool` | The Defensive analyst holds the team-only tool |
+| `test_confidence_is_capped_when_a_specialist_reports_missing_data` | Data gap → high becomes medium with a reason; no gap → unchanged |
+| `test_api_team_endpoints` | Routes, validation, polling, 404, five specialists in the roster |
+| `tests/test_buildup.py` (3 tests) | Counter goal: turnover, move, tracking positions linked by shirt; penalty traced to its foul; clock bound, `event_id`, team-only registration |
 
 Live checks (manual): `curl -X POST localhost:8010/v1/matches/m-fd6bpy/agents/team -d '{"question": …, "at_ms": …, "wait": true}'`.
 
@@ -488,8 +522,9 @@ Live checks (manual): `curl -X POST localhost:8010/v1/matches/m-fd6bpy/agents/te
 
 - **Add a specialist:** add a `Specialist(key, title, brief, focus, tools, max_tool_calls)` to `registry.SPECIALISTS`.
   The planner sees its `brief` automatically; add keywords to `roles.ROUTES` for the fallback; add a lane to the UI's icon map.
-- **Add a tool:** implement `tool_<name>` on `MatchTools` (cut at `self.at_ms`!), add its spec to `TOOL_SPECS`, then
-  grant it to specialists. The blackboard and verifier need no change.
+- **Add a tool:** implement `tool_<name>` on `MatchTools` (cut at `self.at_ms`!), add its spec to `TOOL_SPECS` (shared
+  with the Foundry agents) or `TEAM_TOOL_SPECS` (agent team only), then grant it to specialists. The blackboard and
+  verifier need no change.
 - **Swap the model:** implement `ChatModel.complete` (e.g. another Foundry deployment, a small model for the planner).
 - **Add a stage** (e.g. a critic agent before the deterministic verifier): a function in `roles.py` and a call in
   `Orchestrator._execute` between synthesis and verification, with its own trace kind.

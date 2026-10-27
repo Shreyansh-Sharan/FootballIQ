@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from footballiq.agents.definitions import COMMON_RULES
-from footballiq.agents.tools import TOOL_SPECS
+from footballiq.agents.tools import TEAM_TOOL_SPECS, TOOL_SPECS
 
 LANG_NAME = {"en": "English", "es": "Spanish (Latin American football vocabulary)", "hi": "Hindi in Devanagari, keeping English "
              "football terms the way Indian broadcasts do (pass, cross, corner, goalkeeper written in Devanagari)"}
@@ -63,6 +63,19 @@ SPECIALISTS: dict[str, Specialist] = {s.key: s for s in (
         "not a trained model: never cite a model version for them.",
         ("get_match_context", "get_player_form", "get_physical", "get_substitution_options", "get_best_player",
          "get_key_events"), max_tool_calls=6),
+    Specialist(
+        "defence", "Defensive analyst",
+        "how a goal or big chance was conceded and what would have stopped it: where and how the ball was lost (or the restart "
+        "or foul), the speed of the move and the pressure on it, players goal-side of the ball, marking at the last pass, "
+        "the keeper and the shot",
+        "You read how goals are conceded. Call get_goal_buildup first (pass event_id for an earlier goal or a shot). Trace the "
+        "move from the turnover, restart or foul to the shot: how fast and how far it went, how many actions were under no "
+        "pressure, how many defenders were goal-side of the ball against how many attackers ahead of it, how far the nearest "
+        "defender was from the scorer at the last pass, and where the keeper stood. Name the one to three moments where the "
+        "goal could have been stopped (keep the ball, delay or stop the counter early, track the runner, close the shooter) "
+        "and say which mattered most. Tracking positions can be estimates; when the source is a 360 snapshot, say the counts "
+        "cover only the players in view.",
+        ("get_match_context", "get_goal_buildup", "get_shot_quality", "get_key_events", "get_tactical_shape")),
 )}
 
 SPECIALIST_OUTPUT = """
@@ -81,6 +94,7 @@ Specialists:
 {roster}
 
 Pick the 1 to 3 specialists the question really needs (4 only for broad "what's going on / what should we do" questions).
+A question about how a goal or chance happened, or how it could have been avoided or stopped, always includes defence.
 Give each a precise sub-question in English that it can answer with its own data. Reply with ONLY one JSON object:
 {{"intent": "a few words: what the user wants", "tasks": [{{"specialist": "<key>", "question": "<sub-question>"}}],
   "reason": "one short sentence on why these specialists"}}
@@ -93,6 +107,9 @@ Language: {lang}.
 Rules:
 - Use only facts and numbers that appear in the reports; copy numbers exactly. If a specialist reported a data gap, say
   briefly what is not available instead of guessing.
+- Write numbers the way a broadcast would: xG with 2 decimals, distances in whole metres, times as match minutes (36')
+  or seconds. Never write field names, event ids, milliseconds or long decimals.
+- Confidence is at most medium when a specialist reported a data gap or could not report.
 - If two specialists disagree, say so and say which evidence is stronger.
 - Format (under 170 words unless the user asks for more):
   first line: the answer in one sentence.
@@ -108,7 +125,7 @@ current minute ({clock}): {problems}. Rewrite the answer without them (use only 
 
 def tool_specs(names: tuple[str, ...]) -> list[dict]:
     allowed = set(names)
-    return [t for t in TOOL_SPECS if t["function"]["name"] in allowed]
+    return [t for t in TOOL_SPECS + TEAM_TOOL_SPECS if t["function"]["name"] in allowed]
 
 
 def roster_text() -> str:

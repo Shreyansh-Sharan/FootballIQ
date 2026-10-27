@@ -20,7 +20,7 @@ from footballiq.agents.orchestrator import roles
 from footballiq.agents.orchestrator.blackboard import Blackboard
 from footballiq.agents.orchestrator.llm import ChatModel, ModelError
 from footballiq.agents.orchestrator.models import LANGS, PERSONAS, Run, RunRequest, RunStatus, Task, TaskStatus
-from footballiq.agents.orchestrator.verifier import neutralise, verify
+from footballiq.agents.orchestrator.verifier import cap_confidence, neutralise, verify
 from footballiq.agents.tools import MatchTools
 
 log = logging.getLogger(__name__)
@@ -142,6 +142,10 @@ class Orchestrator:
                 if len(ver2.unverified_numbers) + 3 * len(ver2.future_minutes) <= len(ver.unverified_numbers) + 3 * len(ver.future_minutes):
                     answer, ver = revised, ver2
                 ver.revised = True
+            if any(not t.report or t.report.get("data_gaps") for t in run.plan.tasks):
+                answer, capped = cap_confidence(answer, run.request.lang)
+                if capped:
+                    ver.issues.append("confidence lowered to medium: a specialist reported missing data")
             answer, providers = neutralise(answer)
             run.answer = ctx.scrub(answer)
             run.verification = ver

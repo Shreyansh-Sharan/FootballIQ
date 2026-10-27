@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from footballiq.aliases import get_book
+from footballiq.buildup import goal_buildup
 from footballiq.replay.timeline import MatchTimeline
 from footballiq.shots import shot_rows
 from footballiq.shots import summary as shot_summary
@@ -55,6 +56,18 @@ TOOL_SPECS: list[dict[str, Any]] = [
         "from this match and the tournament so far.",
         {"team_id": {"type": "string"},
          "situation": {"type": "string", "enum": ["penalty", "corner", "free_kick", "counter", "defend"]}}, ["team_id", "situation"]),
+]
+
+# Tools only the agent team uses. The Foundry agents get TOOL_SPECS (definitions.py), so adding a tool here leaves them as
+# they are.
+TEAM_TOOL_SPECS: list[dict[str, Any]] = [
+    _fn("get_goal_buildup", "How a goal (or any shot) was made, up to the replay clock: how and where the conceding team lost the "
+        "ball (or which restart or foul started it), each action of the move with pressure, the defending actions against it, "
+        "and where the conceding team's players were when the ball was lost, at the last pass and at the shot (players "
+        "goal-side of the ball vs attackers ahead of it, last-line height, nearest defender, keeper off the line). Defaults to "
+        "the latest goal and lists every goal so far with its event_id.",
+        {"event_id": {"type": "string", "description": "A goal or shot event_id from this tool or get_key_events (optional = "
+                                                       "the latest goal)."}}),
 ]
 
 _TYPE_TEST: dict[str, Callable[[Any], bool]] = {
@@ -181,8 +194,8 @@ class MatchTools:
         m = self.timeline.match
         frames = {f.event_id: f for f in self.timeline.frames}
         rows = shot_rows(self.timeline.events_between(-1, self.at_ms), frames, m.home.team_id, model_xg)
-        keep = ("event_id", "clock_label", "team_id", "player_name", "type", "outcome", "distance_m", "angle_deg", "zone",
-                "xg", "xg_statsbomb", "difficulty", "under_pressure", "defenders_in_cone", "keeper_off_line_m")
+        keep = ("event_id", "clock_label", "team_id", "player_name", "type", "outcome", "play_pattern", "distance_m", "angle_deg",
+                "zone", "xg", "xg_statsbomb", "difficulty", "under_pressure", "defenders_in_cone", "keeper_off_line_m")
         recent = [{k: s.get(k) for k in keep} for s in rows[-max(1, min(20, int(last_n))):]][::-1]
         return {"xg_model": version or "benchmark xG (our model not scored for this match)",
                 "teams": shot_summary(rows, [m.home.team_id, m.away.team_id]), "recent_shots": recent}
@@ -213,6 +226,12 @@ class MatchTools:
                 team.append({k: r.get(k) for k in ("name", "position_group", "distance_km", "hsr_km", "sprint_km", "top_speed_kmh",
                                                    "minutes_tracked", "on_pitch")})
         return {"source": "tracking, summed over seconds up to the replay clock", "top_by_distance": out}
+
+    def tool_get_goal_buildup(self, event_id: str | None = None) -> dict[str, Any]:
+        out = goal_buildup(self.timeline, self.at_ms, event_id)
+        if "goal" in out:
+            out["goal"]["minute"] = _minute(out["goal"]["clock"])
+        return out
 
     def _need_coach(self) -> Any:
         if self.coach is None:

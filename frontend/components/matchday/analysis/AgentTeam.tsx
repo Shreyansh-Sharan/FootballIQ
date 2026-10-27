@@ -4,13 +4,14 @@
 // -> a verifier checks every number. The run is polled every second and drawn live as a pipeline.
 // A "team" handoff (askTeam) runs its question on arrival.
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   teamDone, useAgentStatus, useTeamRoster, useTeamRun,
   type TeamAsk, type TeamPersona, type TeamRun, type TeamTask, type TeamToolCall, type TeamTrace, type TeamVerification,
 } from "@/lib/matchday/analysis";
 import { CLOCK } from "@/lib/matchday/clock";
 import { onHandoff, takePendingTeam, watchAt } from "@/lib/matchday/handoff";
+import { minuteOf } from "@/lib/matchday/live";
 import { clockLabel, playerName, teamName } from "@/lib/matchday/match";
 import { neutral } from "@/lib/matchday/neutral";
 import { teamVar, useMD } from "../context";
@@ -18,10 +19,17 @@ import { I } from "../Icons";
 import AgentText from "./AgentText";
 import { useA, useSuggestions } from "./common";
 
-const KEYS = ["tactician", "threat", "forecaster", "performance"];
+const KEYS = ["tactician", "threat", "forecaster", "performance", "defence"];
+/** After a goal, the suggestions lead with "how could it have been stopped?" for this long. */
+const GOAL_WINDOW = 10 * 60_000;
 const SHIELD = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z" /><path d="M9 12l2 2 4-4" />
+  </svg>
+);
+const GOAL = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3 19V6h18v13" /><path d="M3 11h18M3 15h18M8 6v13M13 6v13M18 6v13" strokeWidth="1" />
   </svg>
 );
 const CHECK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
@@ -30,6 +38,7 @@ const LANE: Record<string, { color: string; icon: ReactNode }> = {
   threat: { color: "var(--chaos)", icon: I.shots },
   forecaster: { color: "var(--p-stop_start)", icon: I.models },
   performance: { color: "var(--control)", icon: I.flow },
+  defence: { color: "var(--warn)", icon: GOAL },
 };
 const ROLE: Record<string, { color: string; icon: ReactNode }> = {
   planner: { color: "var(--accent-text)", icon: I.coach },
@@ -98,7 +107,12 @@ export default function AgentTeam() {
   const input = useRef<HTMLInputElement>(null);
   const t = clock.t;
   const clk = clockLabel(meta.periods, t);
-  const suggestions = [T.combo(clk), ...base.slice(0, 4)];
+  const goals = useMemo(() => md.events.data.filter((e) => !e.is_shootout && (e.is_goal || e.is_own_goal)), [md.events.data]);
+  const lastGoal = goals.filter((e) => e.match_elapsed_ms <= t).pop();
+  const recent = lastGoal && t - lastGoal.match_elapsed_ms <= GOAL_WINDOW ? lastGoal : null;
+  // own goals carry the benefiting team's id, so the conceding side is the other team either way
+  const goalQ = recent ? T.goalQ(teamName(recent.team_id === meta.home.team_id ? meta.away : meta.home, lang), minuteOf(recent.clock_label)) : null;
+  const suggestions = goalQ ? [goalQ, T.combo(clk), ...base.slice(0, 3)] : [T.combo(clk), ...base.slice(0, 4)];
 
   // ---- asking
   const favTeam = view.fav === 0 ? meta.home : meta.away;
@@ -166,7 +180,7 @@ export default function AgentTeam() {
     {
       key: "planner",
       state: !run ? (busy ? "active" : "pending") : run.plan ? "done" : st === "failed" ? "failed" : "active",
-      sub: run?.plan ? T.stage.picked(tasks.length) : st === "failed" ? T.stage.failed : run || busy ? T.stage.planning : T.roleSub.planner,
+      sub: run?.plan ? T.stage.picked(tasks.length, KEYS.length) : st === "failed" ? T.stage.failed : run || busy ? T.stage.planning : T.roleSub.planner,
     },
     {
       key: "specialists",

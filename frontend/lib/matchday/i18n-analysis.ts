@@ -318,7 +318,7 @@ const en = {
   tools: {
     get_match_context: "Match context", get_match_stats: "Team stats", get_key_events: "Key events", get_forecasts: "Model forecasts",
     get_shot_quality: "Shot quality", get_tactical_shape: "Tactical shape", get_physical: "Physical (tracking)", get_player_form: "Player form",
-    get_substitution_options: "Substitution options", get_best_player: "Best player for…",
+    get_substitution_options: "Substitution options", get_best_player: "Best player for…", get_goal_buildup: "Goal build-up",
   } as Record<string, string>,
   explainer: "Moment Explainer",
   explain: "Explain this moment", explainAgain: "Explain again", explThinking: "Thinking…",
@@ -364,9 +364,10 @@ const en = {
       threat: { title: "Chance & threat analyst", brief: "Shots, chance quality (xG) and set pieces" },
       forecaster: { title: "Game-state forecaster", brief: "Win chances, goal and corner forecasts" },
       performance: { title: "Performance & fitness coach", brief: "Form, fatigue, cards and substitutions" },
+      defence: { title: "Defensive analyst", brief: "How a goal was conceded and what would have stopped it" },
     } as Record<string, { title: string; brief: string }>,
     st: { ready: "Ready", waiting: "Waiting for the plan", queued: "Queued", thinking: "Thinking", tools: "Using tools", done: "Done", failed: "Failed", skipped: "Skipped", idle: "Not needed" } as Record<string, string>,
-    stage: { pending: "Waiting", queued: "Queued", planning: "Reading the question", picked: (n: number) => `${n} of 4 picked`, working: (d: number, n: number) => `${d} of ${n} reports in`, writing: "Writing", checking: "Checking", revising: "Revising", done: "Done", failed: "Stopped" },
+    stage: { pending: "Waiting", queued: "Queued", planning: "Reading the question", picked: (n: number, of: number) => `${n} of ${of} picked`, working: (d: number, n: number) => `${d} of ${n} reports in`, writing: "Writing", checking: "Checking", revising: "Revising", done: "Done", failed: "Stopped" },
     notNeeded: "Not needed for this question.",
     toolbelt: "Can use",
     plan: "Plan",
@@ -416,6 +417,7 @@ const en = {
     setup: "Agent team not set up",
     setupSub: "The agent team needs the AI model service (Foundry) configured on the server. Everything else works as normal.",
     combo: (clk: string) => `At ${clk}: who is on top, and what should each side change next?`,
+    goalQ: (team: string, min: string) => `How could ${team} have stopped the ${min} goal?`,
     say: {
       planning: "The planner is reading your question",
       picked: (names: string) => `The planner picked: ${names}`,
@@ -425,7 +427,7 @@ const en = {
       ready: "The team's answer is ready",
       failed: "The team run stopped",
     },
-    live: { btn: "Ask the team", sub: "Four AI specialists split the question, then one verified answer.", q: (clk: string) => `At ${clk}: who is on top, where is the next goal most likely to come from, and what should each side change?` },
+    live: { btn: "Ask the team", sub: "Five AI specialists split the question, then one verified answer.", q: (clk: string) => `At ${clk}: who is on top, where is the next goal most likely to come from, and what should each side change?` },
   },
 
   // ---- landing
@@ -798,7 +800,7 @@ const es: AStrings = {
   tools: {
     get_match_context: "Contexto del partido", get_match_stats: "Estadísticas", get_key_events: "Eventos clave", get_forecasts: "Pronósticos",
     get_shot_quality: "Calidad de remate", get_tactical_shape: "Forma táctica", get_physical: "Físico (tracking)", get_player_form: "Forma de jugadores",
-    get_substitution_options: "Opciones de cambio", get_best_player: "El mejor para…",
+    get_substitution_options: "Opciones de cambio", get_best_player: "El mejor para…", get_goal_buildup: "Jugada del gol",
   },
   explainer: "Explicador del momento",
   explain: "Explicar este momento", explainAgain: "Explicar de nuevo", explThinking: "Pensando…",
@@ -844,9 +846,10 @@ const es: AStrings = {
       threat: { title: "Analista de ocasiones y peligro", brief: "Remates, calidad de ocasión (xG) y balón parado" },
       forecaster: { title: "Pronosticador del partido", brief: "Opciones de victoria, pronósticos de gol y córner" },
       performance: { title: "Preparador de rendimiento", brief: "Forma, fatiga, tarjetas y cambios" },
+      defence: { title: "Analista defensivo", brief: "Cómo llegó el gol y qué lo habría evitado" },
     },
     st: { ready: "Preparado", waiting: "Esperando el plan", queued: "En cola", thinking: "Pensando", tools: "Usando herramientas", done: "Listo", failed: "Falló", skipped: "Omitido", idle: "No hace falta" },
-    stage: { pending: "En espera", queued: "En cola", planning: "Leyendo la pregunta", picked: (n: number) => `${n} de 4 elegidos`, working: (d: number, n: number) => `${d} de ${n} informes`, writing: "Escribiendo", checking: "Comprobando", revising: "Revisando", done: "Listo", failed: "Detenido" },
+    stage: { pending: "En espera", queued: "En cola", planning: "Leyendo la pregunta", picked: (n: number, of: number) => `${n} de ${of} elegidos`, working: (d: number, n: number) => `${d} de ${n} informes`, writing: "Escribiendo", checking: "Comprobando", revising: "Revisando", done: "Listo", failed: "Detenido" },
     notNeeded: "No hace falta para esta pregunta.",
     toolbelt: "Puede usar",
     plan: "Plan",
@@ -896,6 +899,7 @@ const es: AStrings = {
     setup: "Equipo de agentes sin configurar",
     setupSub: "El equipo de agentes necesita el servicio de modelos de IA (Foundry) configurado en el servidor. Todo lo demás funciona con normalidad.",
     combo: (clk: string) => `En el ${clk}: ¿quién domina, y qué debería cambiar cada equipo?`,
+    goalQ: (team: string, min: string) => `¿Cómo pudo ${team} evitar el gol del ${min}?`,
     say: {
       planning: "El planificador está leyendo tu pregunta",
       picked: (names: string) => `El planificador eligió: ${names}`,
@@ -905,7 +909,7 @@ const es: AStrings = {
       ready: "La respuesta del equipo está lista",
       failed: "La ejecución del equipo se detuvo",
     },
-    live: { btn: "Preguntar al equipo", sub: "Cuatro especialistas de IA se reparten la pregunta y dan una respuesta verificada.", q: (clk: string) => `En el ${clk}: ¿quién domina, de dónde es más probable que llegue el próximo gol y qué debería cambiar cada equipo?` },
+    live: { btn: "Preguntar al equipo", sub: "Cinco especialistas de IA se reparten la pregunta y dan una respuesta verificada.", q: (clk: string) => `En el ${clk}: ¿quién domina, de dónde es más probable que llegue el próximo gol y qué debería cambiar cada equipo?` },
   },
 
   // ---- portada
@@ -1276,7 +1280,7 @@ const hi: AStrings = {
   tools: {
     get_match_context: "मैच का संदर्भ", get_match_stats: "टीम के आँकड़े", get_key_events: "अहम इवेंट", get_forecasts: "मॉडल के अनुमान",
     get_shot_quality: "शॉट की क्वालिटी", get_tactical_shape: "टैक्टिकल शेप", get_physical: "शारीरिक (ट्रैकिंग)", get_player_form: "खिलाड़ी की फ़ॉर्म",
-    get_substitution_options: "सब्स्टीट्यूशन विकल्प", get_best_player: "सबसे अच्छा खिलाड़ी…",
+    get_substitution_options: "सब्स्टीट्यूशन विकल्प", get_best_player: "सबसे अच्छा खिलाड़ी…", get_goal_buildup: "गोल का बिल्ड-अप",
   },
   explainer: "मोमेंट एक्सप्लेनर",
   explain: "यह पल समझाएँ", explainAgain: "फिर से समझाएँ", explThinking: "सोच रहा है…",
@@ -1322,9 +1326,10 @@ const hi: AStrings = {
       threat: { title: "मौक़े और ख़तरे का एनालिस्ट", brief: "शॉट, मौक़ों की क्वालिटी (xG) और सेट पीस" },
       forecaster: { title: "मैच-स्थिति अनुमानकर्ता", brief: "जीत की संभावना, गोल और कॉर्नर के अनुमान" },
       performance: { title: "परफ़ॉर्मेंस और फ़िटनेस कोच", brief: "फ़ॉर्म, थकान, कार्ड और सब्स्टीट्यूशन" },
+      defence: { title: "डिफ़ेंसिव एनालिस्ट", brief: "गोल कैसे खाया और उसे कैसे रोका जा सकता था" },
     },
     st: { ready: "तैयार", waiting: "प्लान का इंतज़ार", queued: "कतार में", thinking: "सोच रहा है", tools: "टूल इस्तेमाल कर रहा है", done: "पूरा", failed: "विफल", skipped: "छोड़ा गया", idle: "ज़रूरत नहीं" },
-    stage: { pending: "इंतज़ार", queued: "कतार में", planning: "सवाल पढ़ रहा है", picked: (n: number) => `4 में से ${n} चुने`, working: (d: number, n: number) => `${n} में से ${d} रिपोर्ट`, writing: "लिख रहा है", checking: "जाँच रहा है", revising: "सुधार रहा है", done: "पूरा", failed: "रुका" },
+    stage: { pending: "इंतज़ार", queued: "कतार में", planning: "सवाल पढ़ रहा है", picked: (n: number, of: number) => `${of} में से ${n} चुने`, working: (d: number, n: number) => `${n} में से ${d} रिपोर्ट`, writing: "लिख रहा है", checking: "जाँच रहा है", revising: "सुधार रहा है", done: "पूरा", failed: "रुका" },
     notNeeded: "इस सवाल के लिए ज़रूरत नहीं।",
     toolbelt: "इस्तेमाल कर सकता है",
     plan: "प्लान",
@@ -1374,6 +1379,7 @@ const hi: AStrings = {
     setup: "एजेंट टीम सेट नहीं है",
     setupSub: "एजेंट टीम के लिए सर्वर पर AI मॉडल सेवा (Foundry) कॉन्फ़िगर होनी चाहिए। बाक़ी सब सामान्य रूप से काम करता है।",
     combo: (clk: string) => `${clk} पर: कौन हावी है, और हर टीम को आगे क्या बदलना चाहिए?`,
+    goalQ: (team: string, min: string) => `${team} ${min} का गोल कैसे रोक सकती थी?`,
     say: {
       planning: "प्लानर आपका सवाल पढ़ रहा है",
       picked: (names: string) => `प्लानर ने चुने: ${names}`,
@@ -1383,7 +1389,7 @@ const hi: AStrings = {
       ready: "टीम का जवाब तैयार है",
       failed: "टीम रन रुक गया",
     },
-    live: { btn: "टीम से पूछें", sub: "चार AI विशेषज्ञ सवाल बाँटते हैं, फिर एक सत्यापित जवाब।", q: (clk: string) => `${clk} पर: कौन हावी है, अगला गोल सबसे ज़्यादा कहाँ से आ सकता है, और हर टीम को क्या बदलना चाहिए?` },
+    live: { btn: "टीम से पूछें", sub: "पाँच AI विशेषज्ञ सवाल बाँटते हैं, फिर एक सत्यापित जवाब।", q: (clk: string) => `${clk} पर: कौन हावी है, अगला गोल सबसे ज़्यादा कहाँ से आ सकता है, और हर टीम को क्या बदलना चाहिए?` },
   },
 
   // ---- लैंडिंग

@@ -21,6 +21,9 @@ MAX_TASKS = 4
 
 # keyword routing used when the planner's output is unusable (and for an obvious single-domain question)
 ROUTES: list[tuple[str, tuple[str, ...]]] = [
+    ("defence", ("avoid", "prevent", "stopped", "stop that", "stop the goal", "conceded", "concede", "how did they score",
+                 "how was the goal", "how did the goal", "build-up", "buildup", "counter-attack", "defending", "defensive error",
+                 "marking", "mistake")),
     ("performance", ("sub", "substitut", "tired", "fatigue", "fitness", "player", "penalty taker", "who should", "card risk",
                      "booked", "yellow", "in form", "out of form", "player form", "dip", "sprint", "distance", "best player",
                      "free kick", "corner taker")),
@@ -134,9 +137,12 @@ def synthesize(model: ChatModel, question: str, tasks: list[Task], context: str,
                add_usage: Callable[[dict], None], revise: tuple[str, list[str], str] | None = None) -> str:
     reports = {SPECIALISTS[t.specialist].title: t.report for t in tasks if t.report}
     gaps = [f"{SPECIALISTS[t.specialist].title}: {t.error or t.status.value}" for t in tasks if not t.report]
+    missing = [g for t in tasks if t.report for g in t.report.get("data_gaps") or []]
     system = SYNTHESIZER.format(persona=persona, lang=LANG_NAME.get(lang, "English")) + "\n" + context
     user = (f"User question: {question}\n\nSpecialist reports:\n{json.dumps(reports, ensure_ascii=False)}"
-            + (f"\n\nSpecialists that could not report: {gaps}" if gaps else ""))
+            + (f"\n\nSpecialists that could not report: {gaps}" if gaps else "")
+            + (f"\n\nData the specialists reported as not available (so Confidence is medium or low): {missing}"
+               if missing or gaps else ""))
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     if revise is not None:
         draft, problems, clock = revise
