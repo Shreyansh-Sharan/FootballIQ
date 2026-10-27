@@ -14,7 +14,9 @@ COPY pyproject.toml ./
 COPY footballiq ./footballiq
 RUN pip install --no-cache-dir -e '.[fabric,ml]'
 
-# Runtime cache dir (Fabric query cache). Writable, not persisted across deploys.
+# Runtime cache dir (Fabric query cache + match packs under /app/data/cache). On the container's own disk it is lost
+# on every restart; on Azure Container Apps mount an Azure Files share at /app/data/cache so restarts stay warm
+# (see DEPLOY.md, "Always on, and warm after a restart").
 ENV FOOTBALLIQ_DATA_DIR=/app/data
 RUN mkdir -p /app/data
 
