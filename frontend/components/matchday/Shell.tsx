@@ -141,7 +141,7 @@ export default function Shell() {
   // ---- cross-panel handoffs
   useEffect(() => onHandoff((h) => {
     if (h.type === "tab") setTab(h.tab);
-    else if (h.type === "ask" || h.type === "explain") setTab("ai");
+    else if (h.type === "ask" || h.type === "explain" || h.type === "team") setTab("ai");
     else if (h.type === "coach") setTab("coach");
     else if (h.type === "focus") { setView({ ...viewRef.current, favPlayer: h.playerId }); if (h.tab) setTab(h.tab); }
     else if (h.type === "seek") CLOCK.seek(Math.max(0, h.t_ms - (h.lead_ms ?? 0)));

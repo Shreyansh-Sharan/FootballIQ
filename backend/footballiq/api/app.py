@@ -19,7 +19,10 @@ from pydantic import BaseModel, Field
 from footballiq import __version__, config
 from footballiq.agents import foundry
 from footballiq.agents.definitions import AGENTS
+from footballiq.agents.orchestrator import Orchestrator
+from footballiq.agents.orchestrator.llm import FoundryChat
 from footballiq.agents.service import AgentService
+from footballiq.api.orchestrator import context_factory, orchestrator_router
 from footballiq.aliases import AliasedStore, get_book
 from footballiq.api.commentary import commentary_router
 from footballiq.api.privacy import install_privacy
@@ -109,6 +112,7 @@ def create_app(store=None, publisher: EventstreamPublisher | None = None) -> Fas
     app.state.tactical = None
     app.state.predictions = None
     app.state.agents = None
+    app.state.orchestrator = None
     app.state.coach = None
     app.state.ai_takes = {}
 
@@ -423,6 +427,16 @@ def create_app(store=None, publisher: EventstreamPublisher | None = None) -> Fas
 
     if book.enabled:
         install_privacy(app)   # outermost, so every response is aliased
+    # Multi-agent orchestrator ("agent team"): planner -> specialists in parallel -> synthesizer -> verifier
+    def orchestrator() -> Orchestrator:
+        if app.state.orchestrator is None:
+            svc = agent_service()                 # 503 when Foundry is not configured
+            app.state.orchestrator = Orchestrator(FoundryChat(), context_factory(svc.tools_for))
+        return app.state.orchestrator
+
+    app.include_router(orchestrator_router(orchestrator, lambda: getattr(app.state.orchestrator, "model", None) and
+                                           app.state.orchestrator.model.name or foundry.default_model()))
+
     return app
 
 

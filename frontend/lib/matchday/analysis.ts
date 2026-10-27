@@ -8,6 +8,7 @@ import { API_URL } from "../api";
 import { HttpError, type Status } from "./api";
 import { CLOCK, useClock } from "./clock";
 import { onHandoff, type CoachSection } from "./handoff";
+import type { Lang } from "./types";
 
 // ------------------------------------------------------------------ wire types
 export interface FormRow {
@@ -124,6 +125,30 @@ export interface MomentCard {
 export interface AgentExplain extends AgentRun { card: MomentCard | null; raw: string }
 export interface AgentStatus { configured: boolean; model?: string; agents: Record<string, { name: string; id: string }> }
 
+// Agent team (multi-agent orchestrator): planner -> specialists in parallel -> synthesizer -> verifier.
+export type TeamRunStatus = "queued" | "planning" | "running" | "synthesising" | "verifying" | "done" | "failed";
+export type TeamTaskStatus = "queued" | "running" | "done" | "failed" | "skipped";
+export type TeamPersona = "coach" | "analyst" | "fan" | "casual" | "player";
+export interface TeamSpecialist { key: string; title: string; brief: string; tools: string[] }
+export interface TeamRoster { model: string | null; pipeline: string[]; specialists: TeamSpecialist[] }
+export interface TeamToolCall { name: string; arguments: Record<string, unknown>; cached: boolean; chars: number; ok: boolean }
+export interface TeamFinding { claim: string; evidence: string; confidence: string }
+export interface TeamReport { summary: string; findings: TeamFinding[]; recommendation: string; data_gaps: string[] }
+export interface TeamTask {
+  specialist: string; question: string; status: TeamTaskStatus; seconds: number | null; model_calls: number; error: string | null;
+  tool_calls: TeamToolCall[]; report: TeamReport | null;
+}
+export interface TeamPlan { intent: string; reason: string; source: string; tasks: TeamTask[] }
+export interface TeamVerification { status: string; numbers_checked: number; unverified_numbers: string[]; future_minutes: string[]; issues: string[]; revised: boolean }
+export interface TeamTrace { t: number; kind: string; agent: string; detail: string }
+export interface TeamAsk { question: string; at_ms: number; lang: Lang; persona: TeamPersona; fav_team_id?: string | null }
+export interface TeamRun {
+  id: string; status: TeamRunStatus; clock: string; seconds: number; model: string | null; error: string | null; cached_from?: string | null;
+  request: TeamAsk & { match_id?: string }; plan: TeamPlan | null; answer: string | null; verification: TeamVerification | null;
+  trace: TeamTrace[]; usage: { prompt_tokens: number; completion_tokens: number; model_calls: number };
+}
+export const teamDone = (s: TeamRunStatus | undefined) => s === "done" || s === "failed";
+
 export type InsightCategory = "event" | "momentum" | "pressing" | "model" | "tactical" | "physical" | "player" | "discipline" | "set_piece";
 export type Situation = "penalty" | "corner" | "free_kick" | "counter" | "defend";
 export interface BestRow { player_id: string; name: string; jersey: number | null; role: string; score: number; why: string[] }
@@ -186,6 +211,9 @@ export const anApi = {
   ask: (id: string, at: number, question: string, threadId: string | null) =>
     postJSON<AgentAnswer>(`${mm(id)}/agents/ask`, { question, at_ms: at_(at), thread_id: threadId }),
   explain: (id: string, at: number) => postJSON<AgentExplain>(`${mm(id)}/agents/explain`, { at_ms: at_(at) }),
+  teamRoster: () => getJSON<TeamRoster>("/v1/agents/team"),
+  teamStart: (id: string, a: TeamAsk) => postJSON<TeamRun>(`${mm(id)}/agents/team`, { ...a, at_ms: at_(a.at_ms), fav_team_id: a.fav_team_id ?? null, wait: false }),
+  teamRun: (runId: string) => getJSON<TeamRun>(`/v1/agents/runs/${enc(runId)}`),
   insights: (id: string, at: number) => getJSON<InsightList>(`${mm(id)}/insights?at_ms=${at_(at)}`),
   insightAi: (id: string, insightId: string) => postJSON<AgentExplain & { insight_id: string }>(`${mm(id)}/insights/${enc(insightId)}/ai`, {}),
   players: (id: string, at: number, team: string) => getJSON<PlayersResp>(`${mm(id)}/players?at_ms=${at_(at)}&team=${enc(team)}`),
@@ -508,6 +536,112 @@ export function useExplainer(matchId: string | null) {
     }
   }, [matchId]);
   return { res: mine ? s.res : null, error: mine ? s.error : null, busy: mine && s.busy, askedAt: mine ? s.askedAt : null, run };
+}
+
+// ---- Agent team
+export type TeamError = "unavailable" | "failed" | "network" | "lost";
+interface TeamState {
+  matchId: string | null; ask: TeamAsk | null; run: TeamRun | null; error: TeamError | null; busy: boolean;
+  /** Polls are failing; still retrying. */
+  reconnecting: boolean;
+  /** Client time of the last good response (to tick elapsed seconds between polls). */
+  syncedAt: number;
+  seq: number;
+}
+const teamStore = store<TeamState>({ matchId: null, ask: null, run: null, error: null, busy: false, reconnecting: false, syncedAt: 0, seq: 0 });
+let teamTimer: ReturnType<typeof setTimeout> | null = null;
+let teamSeq = 0;
+let teamRosterCache: Promise<TeamRoster> | null = null;
+
+function stopTeamPoll() { if (teamTimer) clearTimeout(teamTimer); teamTimer = null; }
+
+/** Polls a run every second until done / failed; network errors back off (max 8 s) and keep retrying. */
+function pollTeam(seq: number, runId: string, fails = 0) {
+  stopTeamPoll();
+  teamTimer = setTimeout(async () => {
+    if (teamStore.get().seq !== seq) return;
+    try {
+      const run = await anApi.teamRun(runId);
+      if (teamStore.get().seq !== seq) return;
+      const done = teamDone(run.status);
+      teamStore.set((p) => ({ ...p, run, busy: !done, reconnecting: false, syncedAt: Date.now() }));
+      if (!done) pollTeam(seq, runId, 0);
+    } catch (e) {
+      if (teamStore.get().seq !== seq) return;
+      if (e instanceof HttpError && e.status === 404) { teamStore.set((p) => ({ ...p, busy: false, reconnecting: false, error: "lost" })); return; }
+      if (fails >= 1) teamStore.set((p) => (p.reconnecting ? p : { ...p, reconnecting: true }));
+      pollTeam(seq, runId, fails + 1);
+    }
+  }, fails ? Math.min(8000, 1000 * 2 ** fails) : 1000);
+}
+
+let teamOffered: boolean | null = null;   // null until the roster answers; false when the API has no agent team
+
+/** The roster (titles and tool permissions); shared across mounts, retried on the next mount after an error. */
+export function useTeamRoster(): TeamRoster | null {
+  const [r, setR] = useState<TeamRoster | null>(null);
+  useEffect(() => {
+    let alive = true;
+    teamRosterCache = teamRosterCache ?? anApi.teamRoster();
+    teamRosterCache.then((d) => { teamOffered = true; if (alive) setR(d); }, () => { teamRosterCache = null; });
+    return () => { alive = false; };
+  }, []);
+  return r;
+}
+
+/** Whether the API offers the agent team: null while unknown, false when it answers 404 / 501 / 503 (checked once). */
+export function useTeamOffered(): boolean | null {
+  const [v, setV] = useState<boolean | null>(teamOffered);
+  useEffect(() => {
+    if (teamOffered !== null) { setV(teamOffered); return; }
+    let alive = true;
+    teamRosterCache = teamRosterCache ?? anApi.teamRoster();
+    teamRosterCache.then(
+      () => { teamOffered = true; if (alive) setV(true); },
+      (e) => { teamRosterCache = null; if (isUnavailable(e)) { teamOffered = false; if (alive) setV(false); } });
+    return () => { alive = false; };
+  }, []);
+  return v;
+}
+
+/** One agent-team run per match, kept in a module store so it keeps polling across tab switches. */
+export function useTeamRun(matchId: string | null) {
+  const s = useStore(teamStore);
+  useEffect(() => {
+    if (matchId && teamStore.get().matchId !== matchId) {
+      stopTeamPoll();
+      teamStore.set({ matchId, ask: null, run: null, error: null, busy: false, reconnecting: false, syncedAt: 0, seq: ++teamSeq });
+    }
+  }, [matchId]);
+  const mine = s.matchId === matchId;
+  const start = useCallback(async (a: TeamAsk) => {
+    const question = a.question.trim();
+    if (!matchId || !question) return;
+    stopTeamPoll();
+    const seq = ++teamSeq;
+    const ask = { ...a, question, at_ms: Math.max(0, Math.floor(a.at_ms)) };
+    teamStore.set({ matchId, ask, run: null, error: null, busy: true, reconnecting: false, syncedAt: Date.now(), seq });
+    try {
+      const run = await anApi.teamStart(matchId, ask);
+      if (teamStore.get().seq !== seq) return;
+      const done = teamDone(run.status);
+      teamStore.set((p) => ({ ...p, run, busy: !done, syncedAt: Date.now() }));
+      if (!done) pollTeam(seq, run.id);
+    } catch (e) {
+      if (teamStore.get().seq !== seq) return;
+      teamStore.set((p) => ({ ...p, busy: false, error: isUnavailable(e) ? "unavailable" : e instanceof HttpError ? "failed" : "network" }));
+    }
+  }, [matchId]);
+  const retry = useCallback(() => { const a = teamStore.get().ask; if (a) void start(a); }, [start]);
+  const clear = useCallback(() => {
+    if (!matchId) return;
+    stopTeamPoll();
+    teamStore.set({ matchId, ask: null, run: null, error: null, busy: false, reconnecting: false, syncedAt: 0, seq: ++teamSeq });
+  }, [matchId]);
+  return {
+    ask: mine ? s.ask : null, run: mine ? s.run : null, error: mine ? s.error : null, busy: mine && s.busy,
+    reconnecting: mine && s.reconnecting, syncedAt: s.syncedAt, start, retry, clear,
+  };
 }
 
 export type { CoachSection };

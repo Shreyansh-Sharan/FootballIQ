@@ -41,6 +41,14 @@ export function useNames() {
   return { sideOf, team, tName, pName };
 }
 
+/** Suggested questions for the AI analysts at the replay clock (score-aware); shared by the Strategist and the agent team. */
+export function useSuggestions(): string[] {
+  const { meta, lang, score } = useMD();
+  const A = useA();
+  const behind = score[0] < score[1] ? meta.home : score[1] < score[0] ? meta.away : null;
+  return [A.sug.top, behind ? A.sug.trailing(teamName(behind, lang)) : A.sug.level, A.sug.where, A.sug.shape, A.sug.chances];
+}
+
 // ------------------------------------------------------------------ building blocks
 export interface Pillar { title: string; value: string; detail: string; tone: SideIdx | null }
 

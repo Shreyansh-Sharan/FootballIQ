@@ -211,3 +211,151 @@ details.an-det > summary { cursor: pointer; font: 700 10px var(--mono); letter-s
 .an-role h3 { font-size: 26px }
 .an-cta { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 32px }
 .an-row .seg { flex-wrap: wrap; max-width: 100% }
+
+/* ---------- agent team (planner -> specialists in parallel -> synthesizer -> verifier); classes are prefixed `at-` */
+.at-mode { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap }
+.at-mode .seg button { display: inline-flex; align-items: center; gap: 6px }
+.at-new { font: 700 9px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 5px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-text) }
+.at-mode .seg button.on .at-new { background: var(--accent-ink); color: var(--accent) }
+.at { position: relative; overflow: hidden; border-color: color-mix(in srgb, var(--accent) 35%, var(--line)) }
+.at::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--p-balanced) 0 25%, var(--chaos) 25% 50%, var(--p-stop_start) 50% 75%, var(--control) 75%) }
+.at-intro { font-size: 14px; line-height: 1.5 }
+.at-q { border-left: 4px solid var(--accent); padding: 2px 0 2px 12px; display: flex; flex-direction: column; gap: 4px; animation: fin .3s ease }
+.at-q-text { font: 600 16px/1.4 var(--body); overflow-wrap: anywhere }
+.at-for { display: inline-flex; align-items: center; gap: 6px; font: 600 10px/1.5 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim) }
+.at-clock { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--accent-text) }
+
+/* pipeline stepper */
+.at-steps { list-style: none; margin: 0; padding: 4px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) }
+.at-step { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; min-width: 0; padding: 0 4px }
+.at-step:not(:first-child)::before { content: ""; position: absolute; top: 19px; right: calc(50% + 24px); width: calc(100% - 48px); height: 3px; border-radius: 2px; background: var(--line2) }
+.at-step.active:not(:first-child)::before { background: repeating-linear-gradient(90deg, var(--accent) 0 8px, transparent 8px 14px); animation: at-flow .7s linear infinite }
+.at-step.done:not(:first-child)::before, .at-step.warn:not(:first-child)::before, .at-step.failed:not(:first-child)::before { background: var(--accent) }
+.at-node { position: relative; z-index: 1; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--panel2); border: 2px solid var(--line2); color: var(--mute); transition: background .3s, border-color .3s, color .3s }
+.at-node svg { width: 18px; height: 18px }
+.at-step b { font: 800 14px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.04em; color: var(--dim); overflow-wrap: anywhere }
+.at-step small { font: 600 10px/1.3 var(--mono); letter-spacing: 0.04em; color: var(--mute); overflow-wrap: anywhere }
+.at-step.active .at-node { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); animation: at-ring 1.6s ease-out infinite }
+.at-step.active b, .at-step.done b, .at-step.warn b { color: var(--ink) }
+.at-step.active small { color: var(--accent-text) }
+.at-step.done .at-node { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.at-step.warn .at-node { background: var(--warn); border-color: var(--warn); color: #121a2e }
+.at-step.failed .at-node { border-color: #e5576c; color: #e5576c }
+.at-step.failed small { color: #e5576c }
+@keyframes at-ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent) } 70% { box-shadow: 0 0 0 10px transparent } 100% { box-shadow: 0 0 0 0 transparent } }
+@keyframes at-flow { from { background-position: 0 0 } to { background-position: 14px 0 } }
+.at-plan { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; background: var(--panel2); border: 1px dashed var(--line2); font-size: 13.5px; line-height: 1.45; animation: fin .35s ease }
+.at-plan-k { display: inline-flex; align-items: center; gap: 6px; font: 700 10px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-text) }
+.at-plan-k svg { width: 14px; height: 14px }
+
+/* specialist lanes */
+.at-lanes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start }
+.at-lane { --lane: var(--accent); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); border-top: 3px solid var(--lane); min-width: 0; transition: opacity .3s, border-color .3s, box-shadow .3s }
+.at-lane.thinking, .at-lane.tools { border-color: color-mix(in srgb, var(--lane) 55%, var(--line)); border-top-color: var(--lane); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lane) 22%, transparent), 0 12px 30px -20px var(--lane) }
+.at-lane.idle { opacity: 0.55; border-top-color: var(--line2) }
+.at-lane.idle .at-av { background: var(--raise); color: var(--mute) }
+.at-lane.failed, .at-lane.skipped { border-top-color: #e5576c }
+.at-bar { position: absolute; inset: 0 0 auto 0; height: 3px; overflow: hidden; pointer-events: none }
+.at-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 40%; background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 65%, var(--lane)), transparent); animation: at-scan 1.3s ease-in-out infinite }
+@keyframes at-scan { from { transform: translateX(-100%) } to { transform: translateX(250%) } }
+.at-lane-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px }
+.at-av { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--lane, var(--accent)) 18%, var(--panel)); color: var(--lane, var(--accent-text)); flex: none }
+.at-av svg { width: 20px; height: 20px }
+.at-lane-t { flex: 1 1 150px; min-width: 0 }
+.at-lane-t b { display: block; font: 800 17px/1.05 var(--display); text-transform: uppercase; letter-spacing: 0.02em }
+.at-lane-t small { display: block; font-size: 12px; color: var(--dim); line-height: 1.3; margin-top: 2px }
+.at-st { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line2); font: 700 10px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); background: var(--panel); white-space: nowrap; max-width: 100% }
+.at-st > span { overflow: hidden; text-overflow: ellipsis }
+.at-st i { width: 8px; height: 8px; border-radius: 50%; background: var(--mute); display: grid; place-items: center; flex: none }
+.at-st em { font-style: normal; color: var(--mute) }
+.at-st.thinking, .at-st.tools { color: var(--ink); border-color: color-mix(in srgb, var(--lane) 60%, transparent) }
+.at-st.thinking i, .at-st.tools i { background: var(--lane); animation: at-blink 1s ease-in-out infinite }
+.at-st.tools i { border-radius: 2px }
+.at-st.done { color: var(--good); border-color: color-mix(in srgb, var(--good) 50%, transparent) }
+.at-st.done i { width: 12px; height: 12px; background: none; color: var(--good) }
+.at-st.done i svg { width: 12px; height: 12px }
+.at-st.failed, .at-st.skipped { color: #e5576c; border-color: color-mix(in srgb, #e5576c 50%, transparent) }
+.at-st.failed i, .at-st.skipped i { background: #e5576c }
+.at-st.queued i, .at-st.waiting i, .at-st.idle i { background: var(--line2) }
+.at-st.ready i { background: var(--good) }
+@keyframes at-blink { 50% { opacity: 0.25; transform: scale(0.7) } }
+.at-idle { font-size: 12.5px; color: var(--mute) }
+.at-belt { font-size: 12px; color: var(--mute); line-height: 1.45 }
+.at-belt span { font: 600 10px var(--mono); letter-spacing: 0.08em; text-transform: uppercase }
+.at-brief { font-size: 13px; line-height: 1.45; color: var(--dim); overflow-wrap: anywhere }
+.at-brief .tag { color: var(--lane) }
+.at-tools { display: flex; flex-wrap: wrap; gap: 6px }
+.at-tool { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font: 600 11.5px/1.3 var(--body); background: color-mix(in srgb, var(--lane) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--lane) 40%, transparent); color: var(--ink); animation: at-pop .35s cubic-bezier(.2, 1.4, .4, 1) both }
+.at-tool > span:first-child { color: var(--lane); font-weight: 800 }
+.at-tool.bad { background: var(--panel); border-style: dashed; color: var(--dim) }
+.at-shared { font: 700 9px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 4px; border-radius: 3px; background: var(--accent-soft); color: var(--accent-text); margin-left: 4px }
+@keyframes at-pop { from { opacity: 0; transform: scale(.85) translateY(3px) } to { opacity: 1; transform: none } }
+.at-dots { display: flex; gap: 5px; padding: 2px 0 }
+.at-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--lane); opacity: 0.3; animation: at-dot 1.2s ease-in-out infinite }
+.at-dots i:nth-child(2) { animation-delay: .15s }
+.at-dots i:nth-child(3) { animation-delay: .3s }
+@keyframes at-dot { 0%, 80%, 100% { opacity: 0.3; transform: none } 40% { opacity: 1; transform: translateY(-3px) } }
+.at-err { font: 12px/1.4 var(--mono); color: #e5576c; overflow-wrap: anywhere }
+.at-rep { display: flex; flex-direction: column; gap: 10px; border-top: 1px dashed var(--line2); padding-top: 10px; animation: fin .4s ease }
+.at-sum { font-weight: 600; font-size: 14px; line-height: 1.5 }
+.at-finds { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px }
+.at-finds li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.5; padding-left: 10px; border-left: 2px solid color-mix(in srgb, var(--lane) 45%, transparent) }
+.at-conf { --c: var(--mute); display: inline-block; margin-right: 6px; padding: 1px 5px; border-radius: 4px; font: 700 9.5px/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); vertical-align: 1px }
+.at-evd > summary { cursor: pointer; font: 700 10px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); padding: 2px 0; width: fit-content }
+.at-evd p, .at-evd ul { font: 11.5px/1.5 var(--mono); color: var(--dim); margin: 4px 0 0; overflow-wrap: anywhere }
+.at-evd ul { padding-left: 16px }
+.at-rec { display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; line-height: 1.45; border-left-color: var(--lane); background: color-mix(in srgb, var(--lane) 12%, transparent) }
+.at-gaps { font-size: 12.5px; color: var(--dim) }
+.at-gaps ul { margin: 2px 0 0; padding-left: 18px }
+
+/* answer, verification, log */
+.at-ans { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 12px; background: linear-gradient(160deg, var(--accent-soft), transparent 55%), var(--panel2); border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); animation: fin .45s ease }
+.at-ans.pending { background: var(--panel2); border-style: dashed }
+.at-ans-h { display: flex; align-items: center; gap: 10px }
+.at-ans-h h4 { font-size: 20px; flex: 1 }
+.at-ans-h .at-av { background: var(--accent); color: var(--accent-ink) }
+.at-ans-f { row-gap: 6px }
+.at-skel { display: flex; flex-direction: column; gap: 8px }
+.at-skel i { height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--line) 0 30%, var(--line2) 50%, var(--line) 70%); background-size: 300% 100%; animation: at-shim 1.4s linear infinite }
+.at-skel i:nth-child(1) { width: 85% } .at-skel i:nth-child(2) { width: 96% } .at-skel i:nth-child(3) { width: 70% } .at-skel i:nth-child(4) { width: 45% }
+@keyframes at-shim { from { background-position: 100% 0 } to { background-position: 0 0 } }
+.at-ver { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; line-height: 1.4; border: 1px solid var(--line2); background: var(--panel); color: var(--ink) }
+.at-ver > svg { width: 18px; height: 18px; flex: none; color: var(--mute) }
+.at-ver.pass { border-color: color-mix(in srgb, var(--good) 50%, transparent); background: color-mix(in srgb, var(--good) 10%, var(--panel)) }
+.at-ver.pass > svg { color: var(--good) }
+.at-ver.warn { border-color: color-mix(in srgb, var(--warn) 55%, transparent); background: color-mix(in srgb, var(--warn) 10%, var(--panel)) }
+.at-ver.warn > svg { color: var(--warn) }
+.at-ver.fail { border-color: color-mix(in srgb, #e5576c 55%, transparent); background: color-mix(in srgb, #e5576c 10%, var(--panel)) }
+.at-ver.fail > svg { color: #e5576c }
+.at-ver.none, .at-ver.active { color: var(--dim); font-weight: 500 }
+.at-ver.active { align-items: center }
+.at-rev { color: var(--accent-text) }
+.at-log { border: 1px solid var(--line); border-radius: 10px; background: var(--panel2) }
+.at-log > summary { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 12px; font: 800 15px var(--display); text-transform: uppercase; letter-spacing: 0.04em; list-style: none; border-radius: 10px }
+.at-log > summary::-webkit-details-marker { display: none }
+.at-log > summary::before { content: "▸"; color: var(--mute); transition: transform .2s; display: inline-block }
+.at-log[open] > summary::before { transform: rotate(90deg) }
+.at-log > summary > :first-child { flex: 1 }
+.at-log ol { list-style: none; margin: 0; padding: 0 12px 10px; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column }
+.at-log li { display: grid; grid-template-columns: 52px minmax(0, 10em) minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 5px 0; border-top: 1px dashed var(--line); font-size: 12.5px }
+.at-log li:first-child { border-top: 0; animation: fin .3s ease }
+.at-log .t { font-size: 11px; color: var(--mute) }
+.at-log .who { font: 700 10.5px/1.3 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.at-log .what { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
+.at-log .what b { font-weight: 600 }
+.at-log .det { color: var(--dim) }
+.at-errbox { justify-content: space-between; flex-wrap: wrap }
+.at-errcode { font: 11.5px/1.4 var(--mono); color: var(--dim); overflow-wrap: anywhere }
+@media (max-width: 640px) { .at-lanes { grid-template-columns: minmax(0, 1fr) } }
+@media (max-width: 560px) {
+  .at-node { width: 34px; height: 34px }
+  .at-step:not(:first-child)::before { top: 16px; right: calc(50% + 21px); width: calc(100% - 42px) }
+  .at-step b { font-size: 12px }
+  .at-step small { font-size: 9px }
+  .at-log li { grid-template-columns: 44px minmax(0, 1fr) }
+  .at-log .what { grid-column: 2 }
+}
+@media (prefers-reduced-motion: reduce) {
+  .at-bar, .at-dots { display: none }
+  .at-step.active:not(:first-child)::before { background: var(--accent) }
+}

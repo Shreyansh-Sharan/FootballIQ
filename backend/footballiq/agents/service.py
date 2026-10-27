@@ -46,6 +46,10 @@ class AgentService:
             tactical = lambda: ts
         self._predictions, self._tactical = predictions, tactical
 
+    def tools_for(self, match_id: str, at_ms: int) -> tuple[MatchTools, str]:
+        """Clock-bounded tools + the replay context line, for other agent runtimes (the multi-agent orchestrator)."""
+        return self._tools(match_id, at_ms)
+
     def _tools(self, match_id: str, at_ms: int) -> tuple[MatchTools, str]:
         tl = self.store.get(match_id)
         if tl is None:

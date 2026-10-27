@@ -9,6 +9,8 @@ and PNG (2x).
 | 2 | [Data ingestion on Fabric (LLD)](#2-data-ingestion-on-microsoft-fabric-lld) | Medallion lakehouse, ML training and scoring, real-time analytics |
 | 3 | [Application (LLD)](#3-application-lld) | The web app, the API's internal layers and the platform services it calls |
 | 4 | [How everything connects](#4-how-everything-connects) | Numbered runtime and delivery flows across Fabric, Azure and Vercel |
+| 5 | [Multi-agent framework (HLD)](#5-multi-agent-framework-hld) | How the agent team connects to the web app, the API, Foundry, Speech and Fabric, and what comes next |
+| 6 | [Multi-agent orchestrator (LLD)](#6-multi-agent-orchestrator-lld) | The multi-stage pipeline: stages, gates, specialists, blackboard, match tools, run engine, measured runs |
 
 ## 1. High-level design (HLD)
 
@@ -96,6 +98,40 @@ for the custom domain.
    the web app (`vercel --prod`) all deploy from the repository.
 
 [SVG](architecture/04-how-it-connects.svg)
+
+## 5. Multi-agent framework (HLD)
+
+![Multi-agent framework](architecture/05-multi-agent-hld.png)
+
+1. **Ask and watch:** the AI tab (or "Ask the team" on the Live tab) posts the question with the replay clock,
+   perspective and language, then polls the run's live trace.
+2. **Ground:** the orchestrator's blackboard calls the match tools, which never see past the replay clock.
+3. **Evidence:** the tools read Gold tables and ML scores from OneLake.
+4. **Reason:** the planner, the specialists and the synthesizer run on gpt-5.1 in Microsoft Foundry.
+5. **Verify:** numbers, minutes and source names are checked against the evidence before anything is delivered.
+6. **Listen:** commentary lines are voiced by Azure AI Speech.
+
+Dashed flows are planned: voiced team answers (7), agent traces in the Eventhouse (8) and in-play triggers from
+Activator (9). See [MULTI_AGENT_HLD.md](MULTI_AGENT_HLD.md) for the design and the roadmap.
+
+[SVG](architecture/05-multi-agent-hld.svg)
+
+## 6. Multi-agent orchestrator (LLD)
+
+![Multi-agent orchestrator](architecture/06-multi-agent-lld.png)
+
+| Stage | Runs on | Output | Gate to the next stage | Fallback |
+|---|---|---|---|---|
+| 0 Ground | code | match tools cut at `at_ms` | the match exists | run fails |
+| 1 Plan | gpt-5.1, low reasoning, JSON | 1–4 tasks | at least one known specialist | keyword router |
+| 2 Investigate | gpt-5.1 + tools, in parallel | one report per specialist | at least one report 35 s before the run budget ends | stragglers skipped |
+| 3 Synthesize | gpt-5.1, low reasoning | the answer in the chosen perspective and language | non-empty answer | run fails |
+| 4 Verify | deterministic rules | pass, warn or fail | clean, or one revision used | the better draft is kept |
+| 5 Deliver | code | neutral sources, fictional names | n/a | n/a |
+
+See [MULTI_AGENT_LLD.md](MULTI_AGENT_LLD.md) for the classes, the API, the failure modes and the tests.
+
+[SVG](architecture/06-multi-agent-lld.svg)
 
 ## Security and identity
 

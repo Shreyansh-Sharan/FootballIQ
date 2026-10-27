@@ -5,7 +5,10 @@
 import { useMemo } from "react";
 import { useKeyed, type Status } from "@/lib/matchday/api";
 import { mdApi } from "@/lib/matchday/api";
-import { handoff, openTab } from "@/lib/matchday/handoff";
+import { CLOCK } from "@/lib/matchday/clock";
+import { useTeamOffered } from "@/lib/matchday/analysis";
+import { askTeam, handoff, openTab } from "@/lib/matchday/handoff";
+import { AU } from "@/lib/matchday/i18n-analysis";
 import { buildStory, declaredShapes, scorersAt, type Story, type Tone } from "@/lib/matchday/live";
 import { clockLabel, teamName, teamShort } from "@/lib/matchday/match";
 import type { FormationsResp, Predictions, SideIdx, TacticalWindowRef, TeamStats } from "@/lib/matchday/types";
@@ -217,12 +220,20 @@ export function TacticalCard({ windows, formations }: { windows: { data: { windo
 
 // ------------------------------------------------------------------ explain this moment
 export function ExplainCard() {
-  const { U, clock, meta } = useMD();
+  const { U, clock, meta, lang } = useMD();
+  const T = AU[lang].crew;
+  const clk = clockLabel(meta.periods, clock.t);
+  const team = useTeamOffered() !== false;
   return (
     <div className="card explain">
       <div className="card-b">
         <div className="explain-h"><span className="av">{I.spark}</span><div><b>{U.explain.title}</b><span className="dim">{U.explain.sub}</span></div></div>
-        <button className="btn" onClick={() => handoff({ type: "explain" })}>{I.spark}<span>{U.explain.title} · {clockLabel(meta.periods, clock.t)}</span></button>
+        <button className="btn" onClick={() => handoff({ type: "explain" })}>{I.spark}<span>{U.explain.title} · {clk}</span></button>
+        {team && (
+          <button className="btn ghost explain-team" onClick={() => askTeam(T.live.q(clockLabel(meta.periods, CLOCK.t)))} title={T.live.sub}>
+            {I.ai}<span>{T.live.btn} · {clk}</span>
+          </button>
+        )}
       </div>
     </div>
   );

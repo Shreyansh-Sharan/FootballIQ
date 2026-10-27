@@ -10,10 +10,10 @@ import { clockLabel, playerName, teamName } from "@/lib/matchday/match";
 import { neutral } from "@/lib/matchday/neutral";
 import { useMD } from "../context";
 import AgentText from "./AgentText";
-import { useA } from "./common";
+import { useA, useSuggestions } from "./common";
 
 export default function StrategistChat() {
-  const { meta, lang, matchId, clock, score, players } = useMD();
+  const { meta, lang, matchId, clock, players } = useMD();
   const A = useA();
   const status = useAgentStatus();
   const configured = !!status.data?.configured;
@@ -43,14 +43,7 @@ export default function StrategistChat() {
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [turns.length, busy, turns[turns.length - 1]?.a]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const behind = score[0] < score[1] ? meta.home : score[1] < score[0] ? meta.away : null;
-  const suggestions = [
-    A.sug.top,
-    behind ? A.sug.trailing(teamName(behind, lang)) : A.sug.level,
-    A.sug.where,
-    A.sug.shape,
-    A.sug.chances,
-  ];
+  const suggestions = useSuggestions();
   // hover title: tool args with ids replaced by names
   const argsText = (c: AgentToolCall) => {
     let s = JSON.stringify(c.arguments ?? {});

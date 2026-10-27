@@ -539,6 +539,7 @@ footer a { color: var(--accent-text) }
 .explain-h b { display: block; font: 800 19px/1.1 var(--display); text-transform: uppercase }
 .explain-h .dim { font-size: 12.5px; display: block; margin-top: 2px }
 .explain .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px }
+.explain .btn svg { width: 18px; height: 18px; flex: none }
 
 /* match centre */
 .centre .card-h .seg button { font-size: 12px; padding: 4px 9px }
